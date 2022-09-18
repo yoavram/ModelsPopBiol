@@ -15,6 +15,13 @@ Every class will present a scientific problem in population biology, a computati
 - [A Biologist's Guide to Mathematical Modeling in Ecology and Evolution](https://press.princeton.edu/books/hardcover/9780691123448/a-biologists-guide-to-mathematical-modeling-in-ecology-and-evolution) / Sarah P. Otto and Troy Day
 - [IPython Interactive Computing and Visualization Cookbook](http://ipython-books.github.io) by [Cyrille Rossant](http://cyrille.rossant.net/)
 
+## Tutorials
+
+- [Calculus](https://www.youtube.com/watch?v=WUvTyaaNkzM)
+- [Python](https://github.com/yoavram/SciComPy/blob/master/notebooks/python.ipynb)
+- [NumPy](https://github.com/yoavram/SciComPy/blob/master/notebooks/numpy.ipynb)
+- [Matplotlib](https://github.com/yoavram/SciComPy/blob/master/notebooks/matplotlib.ipynb) 
+
 ## License
 
 Content of this repository is distributed under the CC-BY-SA 4.0 license.
