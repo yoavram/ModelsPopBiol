@@ -1,0 +1,17 @@
+title: Lecture 3
+---
+date: 2023-03-30
+---
+description:
+
+Continuous-time multivariate deterministic model: Lotka-Volterra model
+
+---
+materials:
+
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/lotka-volterra.ipynb) <br>
+[Stability analysis](https://github.com/yoavram/SciComPy/blob/master/notebooks/stability.ipynb)
+---
+name:
+
+Population Dynamics 2 

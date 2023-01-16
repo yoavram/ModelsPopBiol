@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="sechighlight">
+  <div class="container sec">  	
+    <div class="row">
+      <div class="col-2 d-none d-lg-block ">
+        <h2>Lecturer</h2>
+        <div class="instructor">
+          <a href="http://www.yoavram.com" target="_blank">
+            <div class="instructorphoto">
+              <img class="img-hover" src="static/yoavram.jpg">
+            </div>
+            <div>Yoav Ram</div>
+          </a>
+          <br>
+        </div>
+      </div>
+      <div class="col-lg-10">
+        <h2>Course Description</h2>
+
+        <div id="coursedesc">
+          <p>
+            The course will introduce graduate students to models in population biology. We will build models, analyze them using mathematical and computational methods, and fit them to empirical data using statistical methods such as maximum likelihood and Bayesian inference. 
+
+            Every class will present a scientific problem in population biology, a computational method for tackling it, and a Python implementation of the method. Examples will include models from ecology, evolution, epidemiology, and social behavior. In each case, we will introduce a research question, design a model, choose a method, apply it using the Python program language (a leading programming language for scientific research, data science, and machine learning), analyze and visualize the results, and discuss the conclusions.
+
+          </p>
+          <p class="d-lg-none">
+            <strong>Instructor:</strong> <a href="http://www.yoavram.com">Yoav Ram</a>
+          </p>
+          <p>
+            <strong>Language:</strong> The course will be taught in <strong>English</strong>.
+          </p>
+          <p>
+            <strong>Environment:</strong>
+            The course will be given using interactive <em>Jupyter notebooks</em> with built-in exercises and problems. 
+            Students should set up an environment on their computer using <a href="https://www.anaconda.com/products/distribution">Anaconda</a> or use a cloud service like <a href="https://colab.research.google.com">Google Colab</a>.
+          </p>
+          <p>
+          <strong>Prerequisites:</strong>
+          Python, NumPy, Matplotlib, Calculus, Linear Algebra, Probability.
+          See <a href="#prerequisites">more details</a> below.
+	      </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="container sec">
+    <div class="row">
+      <div class="col-4">
+        <h3>Lectures</h3>
+        Spring Semester <br>
+        March 2023 - June 2023<br>
+        Thursday 10:00-12:00<br>
+        Room: Sherman 105
+      </div>
+      <div class="col-4">
+        <h3>Office Hours</h3>
+        Thuesday 12:00-13:00<br>
+        Room: Sherman 328
+      </div>
+      <div class="col-4">
+        <h3>Grading</h3>
+        Grading will be based on bi-weekly assignments and a final project at the end of the course. Assignments will include implementation of existing models and methods; final project will require students to design a new model or extend an existing one and implement it. 
+        <!--a href="/assignments">Assignments</a>: 20%<br>
+        <a href="/project">Final Project</a>: 80%<br>-->
+      </div>
+    </div>
+  </div>
+
+<div class="container sec">
+  <div class="row">
+    <div class="col-4">
+      <h3>Forum</h3>
+      Course forum on <a href="https://moodle.tau.ac.il/course/view.php?id=431337701">Moodle</a>: announcements, questions, and answers.
+      </div>
+      <div class="col-4">
+        <h3>Course Books</h3>
+        <em>A Biologist's Guide to Mathematical Modeling in Ecology and Evolution</em> by Sarah P. Otto and Troy Day<br>
+        Available at the library (including an ebook). <br>
+      </div>
+      <div class="col-4">
+        <h3>Bring your laptop</h3>
+        Interact with the course material using interactive Jupyter notebooks during the lectures.
+	  </div>
+    </div>
+  </div>
+
+  <div class="sechighlight">
+    <div class="container sec">
+        <div class="row">
+    <div class="col-12">
+      <a name="prerequisites"></a>
+      <h2>Prerequisites</h2>
+      <ul>
+        <li><span class="spanh">Programming skills</span><br>
+        All class lectures and assignments will be in Python and use the Python scientific stack. 
+        <strong>Students are expected to be familiar with Python, NumPy &amp; Matplotlib.</strong> 
+        See <a href="calendar">Calendar</a> for links to tutorials.
+        </li>
+        <li><span class="spanh">Calculus &amp; Linear Algebra</span><br> You should be comfortable with differentiation and integration, as well as matrix and vector operations and notation.</li>
+        <li><span class="spanh">Probability and Statistics</span><br>You should be familiar with probability theory (e.g. Bayes' theorem, law of large nubmers, central limit theorem, conditional probability), the characteristics of common distributions (e.g. uniform, Poisson, Gaussian, binomial), and standard statistical operations (e.g. mean, standard deviation, variance).</li>
+      </ul>      
+    </div>
+    </div>
+    </div>
+  </div>
+  <div class="container sec">
+    <div class="row">
+    <div class="col-12">
+    <h2>FAQ</h2>  
+    <div class="qqa">
+      <div class="qq">Can I audit or sit in?</div>
+      <div class="qa">In general we are open to sitting-in guests. We ask that you talk to the instructor before the first class you attend.</div>
+    </div>
+    <div class="qqa">
+      <div class="qq">I have a question about the class. What is the best way to reach the course staff?</div>
+      <div class="qa">Almost all questions should be asked on <a href="https://moodle.tau.ac.il/course/view.php?id=431337701">Moodle</a>. If you have a sensitive issue you can email the instructor directly.</div>
+    </div>    
+    <div class="qqa">
+      <div class="qq">What do the home assignments look like?</div>
+      <div class="qa">Assignments are given as a Jupyter notebooks and require writing Python code to complete one or more computational tasks.</div>
+    </div>
+    <div class="qqa">
+      <div class="qq">What is the balance between theory and application in the course?</div>
+      <div class="qa">When possible, lectures will include the theoretical background for the models and methods that will be used. When deep understanding requires advanced mathematics or statistics, or very specific scientific knowledge, students will be referred to the literature.</div>
+    </div>
+    <div class="qqa">
+    <div class="qq">Where can I find additional resources on scientific computing with Python?</div>
+    <div class="qa">Cyrille Rossant maintains a <a href="https://github.com/rossant/awesome-scientific-python" target="_blank">curated list of awesome scientific Python resources</a> on GitHub. <br>
+    Kaggle hosts a <a href="https://www.kaggle.com/kernels" target="_blank">library of machine and deep learning notebooks</a>. <br>
+    QuantEcon hosts an <a href="http://notes.quantecon.org" target="_blank">open notebook library for economic modeling</a>. <br>
+    Claus O. Wilke's online preview of the <a href="https://serialmentor.com/dataviz/" target="_blank">Fundamentals of Data Visualization</a> is a great "guide to making visualizations that accurately reflect the data, tell a story, and look professional." <br>
+    </div>
+  </div>
+  </div>
+</div>
+</div>
+
+{% endblock %}

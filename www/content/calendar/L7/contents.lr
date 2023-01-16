@@ -1,0 +1,15 @@
+title: Lecture 7
+---
+name: Epidemiology
+---
+date: 2023-05-11
+---
+description:
+
+Continuous-time stochastic model: SIR model
+
+---
+materials:
+
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/gillespie.ipynb)
+

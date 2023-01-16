@@ -1,0 +1,66 @@
+title: Project
+---
+body:
+
+**THE POLICY BELOW IS NOT FINAL**, it will be finalized in the first 2 weeks of the course.
+
+Students will complete a final project that applies methods and approaches discussed in the course.
+The project must submitted as a single Jupyter notebook with text, code (Python only), results, and figures that describe the problem, the methods, and the results.
+You must also submit a **5 minute presentation as a video recording**.
+In this recording you will present the problem, methods, and results in English.
+
+- The scope of the project should be similar to an average lecture or an assignment in the course.
+- You **must submit a proposal** (see below).
+- You may work on a project alone or in pairs (see below). The scope of the project in pairs is expected to be larger, the presentation should be 7 minutes, and both students must participate in the presentation.
+- You may use methods we discussed in the course or new methods in the same spirit.
+- You may do a project that relates to your thesis or job, but it has to be something new that you haven't done yet.
+
+### Proposal
+
+- You **must** submit a proposal describing the project you plan to do.
+- The proposal should be in English, one page, font size 11, 1.5 space between lines, standard margins.
+- The following is a good template for a proposal. You don't have to follow it, but it is recommended. Each section should only include one or two paragraphs:
+ - _Introduction_: introduces the question you are asking and your hypothesis.
+ - _Models and Methods_: briefly describing the models, methods, or algorithms you plan to apply, their suitability to the question you're asking, and if you plan to implement them or use a package.
+ - _Expected Results_: what you expect the results to be (there could be more than a single expectation), and how the results will be interpreted to answer the question.
+ - _Schedule_: an estimation of when you will do the required tasks and how long they will take. If working in pairs, describe the division of labor.
+- Please indicate if you are interested in presenting a 5-10 min presentation of your project.
+- Note the deadline and late policy below;  late submission will either be declined entirely or will reduce the grade.
+
+### Grades
+
+- The final project grade will determine 80% of the course grade:
+    `final_grade = int(0.2 * assignments_grade + 0.8 * project_grade)`
+- Specifically, you _cannot_ pass the course without submitting a project.
+- To appeal the final project grade please submit a detailed appeal by email to the course instructor.
+
+### Deadline
+
+- **Proposal: July 11, 2020, 23:59.**
+- **Project: August 30, 2020, 23:59.**
+
+#### Late Policy:
+
+- Late submissions are not allowed.
+- Even if late submissions are accepted by the instructor,  the grade will be penalised.
+- Exceptions: reserve duty, pregnancy, illness, etc. See IDC official policy.
+- You **may not** use late days for the final project.
+
+### Submission instructions
+
+- Everything must be done in English
+- The submitted notebook should introduce the question and hypothesis, describe the models, methods, and algorithms, present the results and their interpretations with regard to the hypothesis (see Proposal).
+- The names and emails of the authors **should** be included in the notebook.
+- The file name should simply be `final.ipynb`.
+- Please submit exactly one notebook file (`.ipynb`) containing all your figures (i.e. use `%matplotlib inline`).
+- You must also submit a recorded presentation of your project (5 min, or 7 min for pairs). The presentation format is flexible: you can explain the notebook, you can use a PowerPoint presenation, or use another approach.
+- The recordings will be viewed only by the course staff.
+- The project should be submitted on Moodle.
+- **Do not email** your project.
+
+### Collaboration Policy
+
+- You **may** work in pairs. State the names of both authors both on the proposal and on the notebook submission.
+- You **may** discuss your project with other students.
+- You **may not** share project code with other students (except your partner)
+- You **may not** write project code together with other students (except your partner).
