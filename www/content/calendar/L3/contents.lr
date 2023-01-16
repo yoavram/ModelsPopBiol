@@ -4,12 +4,12 @@ date: 2023-03-30
 ---
 description:
 
-Continuous-time multivariate deterministic model: Lotka-Volterra model
+Continuous-time multivariate deterministic model: Predator-prey model
 
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/lotka-volterra.ipynb) <br>
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/predator-prey.ipynb) <br>
 [Stability analysis](https://github.com/yoavram/SciComPy/blob/master/notebooks/stability.ipynb)
 ---
 name:
