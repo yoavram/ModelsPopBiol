@@ -7,11 +7,10 @@ description:
 Discrete-time univariate deterministic model: Haploid selection 
 
 ---
-materials:
-
-[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/population-genetics.ipynb)
-
----
 name:
 
 Population Genetics 1
+---
+materials:
+
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/population-genetics.ipynb)

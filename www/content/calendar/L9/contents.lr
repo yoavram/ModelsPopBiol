@@ -7,6 +7,8 @@ description:
 Bayesian inference: Neutral theory for species abundance
 
 ---
-materials: [Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/bayesian.ipynb) <br>
----
 name: Statistical Inference 2
+---
+materials:
+
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/bayesian.ipynb) <br>

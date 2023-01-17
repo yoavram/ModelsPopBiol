@@ -6,9 +6,12 @@ description:
 
 Continuous-time univariate deterministic model: population growth models
 
----
-materials: [Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/population-growth.ipynb) <br>
+notebooks/population-growth.ipynb) <br>
 ---
 name:
 
 Population Dynamics 1 
+---
+materials:
+
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/

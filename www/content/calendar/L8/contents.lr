@@ -7,9 +7,8 @@ description:
 Maximum likelihood estimation: Molecular clock
 
 ---
+name: Statistical Inference 1
+---
 materials:
 
-[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/statistics.ipynb) 
-
----
-name: Statistical Inference 1
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/mle.ipynb) 

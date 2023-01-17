@@ -7,11 +7,10 @@ description:
 Discrete-time multivariate deterministic model: Age-structured populations
 
 ---
-materials:
-
-[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/age-structure.ipynb)
-
----
 name:
 
 Population Dynamics 3
+---
+materials:
+
+[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/age-structure.ipynb)
