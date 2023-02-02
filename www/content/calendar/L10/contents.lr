@@ -2,11 +2,11 @@ title: Lecture 10
 ---
 date: 2023-06-08
 ---
+name: Generalized Linear Models 1
+---
 description:
 
 Generalized linear models 1: Exponential growth 
 
 ---
-materials: [Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/exponential-growth.ipynb) 
----
-name: Generalized Linear Models 1
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/exponential-growth.ipynb) 

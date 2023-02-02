@@ -4,7 +4,7 @@ date: 2023-06-15
 ---
 description:
 
-Generalized linear models 2: Demography with count data
+Generalized linear models 2: COVID-19 survival
 
 ---
 name:
@@ -13,3 +13,4 @@ Generalized Linear Models 2
 ---
 materials: 
 
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/logistic-model.ipynb)

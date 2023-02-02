@@ -13,8 +13,8 @@ Environment setup <br>
 materials:
 
 [Book: Think Python](https://greenteapress.com/wp/think-python-2e/) <br>
-[Python tutorial](https://github.com/yoavram/SciComPy/blob/master/notebooks/python.ipynb) <br>
-[NumPy tutorial](https://github.com/yoavram/SciComPy/blob/master/notebooks/numpy.ipynb) <br>
-[Matplotlib tutorial](https://github.com/yoavram/SciComPy/blob/master/notebooks/matplotlib.ipynb) <br>
-[Pandas and Seaborn](https://github.com/yoavram/SciComPy/blob/master/notebooks/pandas-seaborn.ipynb) <br>
+[Python tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/python.ipynb) <br>
+[NumPy tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/numpy.ipynb) <br>
+[Matplotlib tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/matplotlib.ipynb) <br>
+[Pandas and Seaborn](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/pandas-seaborn.ipynb) <br>
 [Anaconda download](http://anaconda.com/download) <br>

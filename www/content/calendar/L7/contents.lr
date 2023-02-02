@@ -11,5 +11,5 @@ Continuous-time stochastic model: SIR model
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/gillespie.ipynb)
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/gillespie.ipynb)
 

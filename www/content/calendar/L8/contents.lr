@@ -4,11 +4,11 @@ date: 2023-05-18
 ---
 description:
 
-Maximum likelihood estimation: Molecular clock
+Maximum likelihood estimation: Count data
 
 ---
 name: Statistical Inference 1
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/mle.ipynb) 
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/mle.ipynb) 

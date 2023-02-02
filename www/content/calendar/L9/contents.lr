@@ -4,11 +4,11 @@ date: 2023-06-01
 ---
 description:
 
-Bayesian inference: Neutral theory for species abundance
+Bayesian inference: Count data
 
 ---
 name: Statistical Inference 2
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/SciComPy/blob/master/notebooks/bayesian.ipynb) <br>
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian.ipynb) <br>
