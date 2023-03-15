@@ -5,15 +5,15 @@ body:
 **THE POLICY BELOW IS NOT FINAL**, it will be finalized in the first 2 weeks of the course.
 
 Students will complete a final project that applies methods and approaches discussed in the course.
-The project must submitted as a single Jupyter notebook with text, code (Python only), results, and figures that describe the problem, the methods, and the results.
+The project must submitted as a single Jupyter notebook with text, code (preferably Python), results, and figures that describe the problem, the methods, and the results.
 You must also submit a **5 minute presentation as a video recording**.
-In this recording you will present the problem, methods, and results in English.
+In this recording you will present the problem, methods, and results in *English*.
 
 - The scope of the project should be similar to an average lecture or an assignment in the course.
 - You **must submit a proposal** (see below).
-- You may work on a project alone or in pairs (see below). The scope of the project in pairs is expected to be larger, the presentation should be 7 minutes, and both students must participate in the presentation.
+- You may work on a project **alone or in pairs** (see below). The scope of the project in pairs is expected to be larger, the presentation should be **7 minutes**, and both students must participate in the presentation.
 - You may use methods we discussed in the course or new methods in the same spirit.
-- You may do a project that relates to your thesis or job, but it has to be something new that you haven't done yet.
+- You may do a project that relates to your thesis/research, but it has to be something new that you haven't done yet.
 
 ### Proposal
 
@@ -24,7 +24,6 @@ In this recording you will present the problem, methods, and results in English.
  - _Models and Methods_: briefly describing the models, methods, or algorithms you plan to apply, their suitability to the question you're asking, and if you plan to implement them or use a package.
  - _Expected Results_: what you expect the results to be (there could be more than a single expectation), and how the results will be interpreted to answer the question.
  - _Schedule_: an estimation of when you will do the required tasks and how long they will take. If working in pairs, describe the division of labor.
-- Please indicate if you are interested in presenting a 5-10 min presentation of your project.
 - Note the deadline and late policy below;  late submission will either be declined entirely or will reduce the grade.
 
 ### Grades
@@ -36,14 +35,13 @@ In this recording you will present the problem, methods, and results in English.
 
 ### Deadline
 
-- **Proposal: July 11, 2020, 23:59.**
-- **Project: August 30, 2020, 23:59.**
+See the [calendar](/calendar).
 
 #### Late Policy:
 
 - Late submissions are not allowed.
 - Even if late submissions are accepted by the instructor,  the grade will be penalised.
-- Exceptions: reserve duty, pregnancy, illness, etc. See IDC official policy.
+- Exceptions: reserve duty, pregnancy, illness, etc. See TAU official policy.
 - You **may not** use late days for the final project.
 
 ### Submission instructions
@@ -54,7 +52,7 @@ In this recording you will present the problem, methods, and results in English.
 - The file name should simply be `final.ipynb`.
 - Please submit exactly one notebook file (`.ipynb`) containing all your figures (i.e. use `%matplotlib inline`).
 - You must also submit a recorded presentation of your project (5 min, or 7 min for pairs). The presentation format is flexible: you can explain the notebook, you can use a PowerPoint presenation, or use another approach.
-- The recordings will be viewed only by the course staff.
+- The recordings will be viewed only by course staff.
 - The project should be submitted on Moodle.
 - **Do not email** your project.
 
