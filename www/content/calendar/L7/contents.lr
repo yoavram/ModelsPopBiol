@@ -1,15 +1,14 @@
 title: Lecture 7
 ---
-name: Epidemiology
----
 date: 2023-05-11
 ---
 description:
 
-Continuous-time stochastic model: SIR model
+Maximum likelihood estimation: Count data
 
+---
+name: Statistical Inference 1
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/gillespie.ipynb)
-
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/mle.ipynb) 

@@ -4,11 +4,11 @@ date: 2023-05-18
 ---
 description:
 
-Maximum likelihood estimation: Count data
+Bayesian inference: Count data
 
 ---
-name: Statistical Inference 1
+name: Statistical Inference 2
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/mle.ipynb) 
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian.ipynb) <br>

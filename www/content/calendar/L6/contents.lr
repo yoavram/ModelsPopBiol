@@ -2,15 +2,14 @@ title: Lecture 6
 ---
 date: 2023-05-04
 ---
+name: Epidemiology
+---
 description:
 
-Discrete-time stochastic model: Wright-Fisher model 
+Continuous-time stochastic model: SIR model
 
----
-name:
-
-Population Genetics 2
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/population-genetics.ipynb)
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/gillespie.ipynb)
+

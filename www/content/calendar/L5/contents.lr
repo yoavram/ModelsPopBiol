@@ -4,13 +4,13 @@ date: 2023-04-27
 ---
 description:
 
-Discrete-time multivariate deterministic model: Age-structured populations
+Discrete-time stochastic model: Wright-Fisher model 
 
 ---
 name:
 
-Population Dynamics 3
+Population Genetics 2
 ---
 materials:
 
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/age-structure.ipynb)
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/population-genetics.ipynb)
