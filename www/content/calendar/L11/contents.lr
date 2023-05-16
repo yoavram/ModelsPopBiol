@@ -2,11 +2,11 @@ title: Lecture 11
 ---
 date: 2023-06-15
 ---
+name: Generalized Linear Models 2 
+---
 description:
-
-Likelihood-free inference: Animal social networks
+Generalized linear models 2: COVID-19 survival
 
 ---
-name: Statistical Inference 3
----
-materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/lfi.ipynb) <br>
+materials: 
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/logistic-model.ipynb)

@@ -2,11 +2,11 @@ title: Lecture 9
 ---
 date: 2023-06-01
 ---
-name: Generalized Linear Models 1
+name: Statistical Inference 3
 ---
 description:
-
-Generalized linear models 1: Exponential growth 
+Likelihood-free inference: Animal social networks
 
 ---
-materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/exponential-growth.ipynb) 
+materials:
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/lfi.ipynb) <br>

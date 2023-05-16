@@ -2,15 +2,11 @@ title: Lecture 10
 ---
 date: 2023-06-08
 ---
-description:
-
-Generalized linear models 2: COVID-19 survival
-
+name: Generalized Linear Models 1
 ---
-name:
+description:
+Generalized linear models 1: Exponential growth 
 
-Generalized Linear Models 2 
 ---
 materials: 
-
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/logistic-model.ipynb)
+[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/exponential-growth.ipynb) 
