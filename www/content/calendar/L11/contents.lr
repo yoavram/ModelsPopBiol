@@ -1,12 +1,12 @@
 title: Lecture 11
 ---
-date: 2023-06-15
+date: 2023-06-22
 ---
 name: Statistical Inference 3
 ---
 description:
+
 Bayesian inference in deterministic models: Predator-prey model
 
 ---
-materials:
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian_ode.ipynb) <br>
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian_ode.ipynb) <br>

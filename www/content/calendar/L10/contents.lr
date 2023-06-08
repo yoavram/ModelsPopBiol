@@ -1,12 +1,14 @@
 title: Lecture 10
 ---
-date: 2023-06-08
+date: 2023-06-15
 ---
-name: Generalized Linear Models 2 
+name:
+
+Generalized Linear Models 2 
 ---
 description:
+
 Generalized linear models 2: COVID-19 survival
 
 ---
-materials: 
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/logistic-model.ipynb)
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/logistic-model.ipynb)
