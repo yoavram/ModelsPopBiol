@@ -1,6 +1,6 @@
 title: A2 Due
 ---
-date: 2024-07-03
+date: 2024-07-10
 ---
 description: Discrete-time deterministic models
 ---
@@ -9,4 +9,5 @@ name:
 Assignment #2 due 
 ---
 materials:
+[Assignment](https://github.com/yoavram/ModelsPopBiol/blob/master/assignments/A2.ipynb) <br>
 
