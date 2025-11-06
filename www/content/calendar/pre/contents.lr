@@ -7,7 +7,7 @@ date: 2024-05-23
 description:
 
 Tutorials <br>
-Environment setup <br>
+[Environment setup](/setup) <br>
 
 ---
 materials:
@@ -17,4 +17,3 @@ materials:
 [NumPy tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/numpy.ipynb) <br>
 [Matplotlib tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/matplotlib.ipynb) <br>
 [Pandas and Seaborn](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/pandas-seaborn.ipynb) <br>
-[Anaconda download](http://anaconda.com/download) <br>

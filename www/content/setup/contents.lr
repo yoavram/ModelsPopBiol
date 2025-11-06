@@ -1,0 +1,56 @@
+title: Setup guide
+---
+body:
+
+This guide gets you ready to run the course notebooks in VS Code using a conda‑forge environment managed with **mamba**.
+
+#### Install Miniforge
+- Go to <https://conda-forge.org/download/>.
+- Download the Miniforge installer for your OS and CPU.
+- Run the installer with defaults.
+
+#### Install VS Code
+- Download and install from <https://code.visualstudio.com/>.
+
+#### Download the course materials
+- Direct download (recommended): <https://github.com/yoavram/ModelsPopBiol/archive/refs/heads/master.zip>
+  - Unzip and note the folder path (e.g., `~/Downloads/ModelsPopBiol-master`).
+- If you prefer `git`, clone <https://github.com/yoavram/ModelsPopBiol> (not covered here).
+
+#### Open the course folder in VS Code
+- Start VS Code in the course folder: **File → Open Folder…** → select the course folder.
+
+#### Install the Python extension for VS Code
+- Open VS Code → Extensions → search **Python** (by Microsoft) → Install.
+- Reference: <https://code.visualstudio.com/docs/python/python-quick-start>
+
+#### Install the Jupyter extension for VS Code
+- Extensions → search **Jupyter** (by Microsoft) → Install.
+- Reference: <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>
+
+
+#### Create the course environment from the VS Code terminal
+- In VS Code: **Terminal → New Terminal**. Confirm the terminal path is the course folder.
+- Run:
+  ```bash
+  mamba env create -f env.yml
+  conda activate modelspopbio
+  ```
+
+#### Open the notebooks and select the kernel
+- Open `index.ipynb` in VS Code.
+- In the notebook editor, set the kernel to the course environment:
+  - Click the kernel picker at the top right → choose the interpreter named `modelspopbio`.
+
+#### Quick test
+In a notebook cell, run:
+```python
+import numpy
+print(numpy.__version__)
+```
+You should see version number without errors.
+
+#### Enable GitHub Copilot in VS Code
+- Apply or sign in at <https://education.github.com/pack> to get Copilot Pro for free.
+- Set up **GitHub Copilot** in VS Code: <https://code.visualstudio.com/docs/copilot/setup>
+
