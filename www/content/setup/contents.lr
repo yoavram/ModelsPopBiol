@@ -30,12 +30,13 @@ This guide gets you ready to run the course notebooks in VS Code using a conda�
 
 
 #### Create the course environment from the VS Code terminal
-- In VS Code: **Terminal → New Terminal**. Confirm the terminal path is the course folder.
+- In VS Code: **Terminal → New Terminal**. Confirm the terminal path is the course folder (the one containing `environment.yaml`).
 - Run:
   ```bash
-  mamba env create -f env.yml
+  mamba env create -f environment.yaml
   conda activate modelspopbio
   ```
+- If `mamba` is unavailable, install it with `conda install -n base -c conda-forge mamba` or run `conda env create -f environment.yaml` instead.
 
 #### Open the notebooks and select the kernel
 - Open `index.ipynb` in VS Code.
@@ -53,4 +54,3 @@ You should see version number without errors.
 #### Enable GitHub Copilot in VS Code
 - Apply or sign in at <https://education.github.com/pack> to get Copilot Pro for free.
 - Set up **GitHub Copilot** in VS Code: <https://code.visualstudio.com/docs/copilot/setup>
-
