@@ -1,6 +1,6 @@
 title: A1 Due
 ---
-date: 2026-03-24
+date: 2026-04-27
 ---
 description: Continuous-time deterministic models
 ---
@@ -9,6 +9,3 @@ name:
 Assignment #1 due 
 ---
 materials: 
-[Assignment](https://github.com/yoavram/ModelsPopBiol/blob/master/assignments/A1.ipynb) <br>
-[Solution](https://github.com/yoavram/ModelsPopBiol/blob/master/solutions/A1.ipynb) <br>
-
