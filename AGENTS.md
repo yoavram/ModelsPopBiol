@@ -7,7 +7,7 @@
 - Root configs: `environment.yaml` (full conda stack for modeling) and `requirements.txt` (minimal Lektor-only setup).
 
 ## Build, Test, and Development Commands
-- `mamba env create -f environment.yaml` (preferred) or `conda env create -f environment.yaml`: Provision full teaching stack (JAX/PyMC, plotting, Jupyter).
+- `mamba env create -n modelspopbiol -f environment.yaml` (preferred) or `conda env create -n modelspopbiol -f environment.yaml`: Provision full teaching stack (JAX/PyMC, plotting, Jupyter); `mamba activate modelspopbiol` before working.
 - `pip install -r requirements.txt`: Install just the static site toolchain if you are only updating `www/`.
 - `jupyter lab` (or `jupyter notebook`): Run and validate notebooks locally; prefer the env above.
 - `lektor serve --port 5000`: Live preview of the course site at `http://localhost:5000`.
