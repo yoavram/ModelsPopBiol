@@ -1,30 +1,31 @@
 # Repository Guidelines
 
+## Overview
+Static site for Models in Population Biology (Tel Aviv University) built with **Lektor** (Python/Jinja). Source lives under `www/`; the site is served at `https://modelspopbiol.yoavram.com/`. Lektor turns content (`.lr` files) into static HTML using models and templates.
+
 ## Project Structure & Module Organization
-- `content/`: Lektor content in `.lr` files. Root page lives in `content/contents.lr`; child sections like `assignments/`, `calendar/`, and `project/` hold page/event data. New pages get their own folder plus `contents.lr`.
-- `templates/`: Jinja2 templates. `layout.html` defines navigation and shared head/footer, while `index.html`, `page.html`, `calendar.html`, and `event.html` render specific views. Macros live in `templates/macros/`.
-- `models/`: Lektor data models (`*.ini`) that define fields for pages, calendars, and events. Align new content with the matching model.
-- `assets/static/`: CSS, fonts, and images served under `/static/` (e.g., `style.css`, `LifeSciLogo.png`).
+- `content/`: Lektor content. Root page is `content/contents.lr`; subsections include `assignments/`, `calendar/`, and `project/`. Each page or event has its own folder with `contents.lr` declaring `_model`/`_template`.
+- `templates/`: Jinja2 templates. `layout.html` holds navigation, head, and footer; `index.html`, `page.html`, `calendar.html`, and `event.html` render specific views; shared macros in `templates/macros/`.
+- `models/`: Data models (`*.ini`) that define fields for pages, calendars, and events—ensure new content matches the right model.
+- `assets/static/`: CSS, fonts, images served via `/static/` (e.g., `style.css`, `LifeSciLogo.png`).
 
 ## Build, Test, and Development Commands
-- `pip install lektor` (once): Installs the static site generator.
-- `lektor serve --port 5000`: Run a live dev server with auto-reload at `http://localhost:5000`.
-- `lektor build -O build`: Produce static output for manual inspection; treat build warnings as blockers.
-- `lektor deploy`: Use only if a deploy target is configured; otherwise push changes to the hosting branch as instructed.
+- `pip install lektor` (first run): Install the generator.
+- `lektor serve --port 5000`: Live dev server with auto-reload at `http://localhost:5000`.
+- `lektor build -O build`: Generate static output for review; treat warnings as blockers.
+- `lektor deploy`: Only if a deploy target is configured; otherwise push built output per hosting instructions.
 
 ## Coding Style & Naming Conventions
-- Keep HTML/Jinja indentation at 2 spaces; preserve existing block structure and whitespace control (`{% ... %}` vs `{{ ... }}`).
-- CSS in `assets/static/style.css` follows compact, two-space indentation; group related rules and prefer utility classes already present from Bootstrap 4.1.
-- Content filenames use lowercase slugs (`content/calendar/new-event/contents.lr`). Set `_model` and `_template` explicitly when diverging from defaults.
-- Favor concise variable names in templates (`this`, `child`) and reuse shared macros when adding pagination or repeated UI.
+- HTML/Jinja: 2-space indent; keep block structure and whitespace control tags intact. Use concise names (`this`, `child`) and existing macros for repeated UI.
+- CSS (`assets/static/style.css`): Two-space indentation; leverage Bootstrap 4.1 utilities before adding custom rules.
+- Content: Lowercase slugs for folders (`content/calendar/new-event/contents.lr`); set `_model`/`_template` explicitly when deviating from defaults.
 
 ## Testing Guidelines
-- No automated tests; rely on `lektor build` to surface template/content errors. Fix any warnings before committing.
-- Manually click through modified pages in `lektor serve`, checking navigation, dates, and external links (Moodle/GitHub archives) on desktop and mobile widths.
-- When adding events or assignments, confirm dates/times render correctly and that downloadable assets resolve under `/static/`.
+- No automated tests. Use `lektor build` to catch template/content errors and broken references.
+- Manually verify in `lektor serve`: navigation, dates, links (Moodle, GitHub archives), and responsive layout on mobile widths.
+- For new events/assignments/projects, double-check dates and that linked assets resolve under `/static/`.
 
 ## Commit & Pull Request Guidelines
-- Commit messages in this repo are short, imperative statements (`update calendar dates`, `remove assignment solutions`). Follow that style and keep related changes in one commit when possible.
-- PRs should describe the change, the affected sections (content vs templates vs assets), and manual verification performed (`lektor build`, pages clicked).
-- Include before/after screenshots or recorded GIFs for visual changes to templates or styles; link any related course issue or deployment note.
-- Avoid committing secrets or private course materials; keep student-facing assets in `assets/static/` and reference them via the Jinja `url` filter.
+- Commit messages: short, imperative (`update calendar dates`, `remove assignment solutions`); keep related changes together.
+- PRs: describe scope (content vs templates vs assets) and manual checks performed (`lektor build`, pages clicked). Include screenshots/GIFs for visual changes and link relevant course issues/deployment notes.
+- Do not commit secrets or private course materials; host student-facing assets in `assets/static/` and link via the Jinja `url` filter.
