@@ -4,6 +4,16 @@
 
 [![Official website](https://img.shields.io/badge/Website-ModelsPopBiol-orange.svg)](https://modelspopbiol.yoavram.com)
 
+## Environment (pixi + marimo pilot)
+
+1. Create/update the environment from lockfile:
+   - `pixi install --locked`
+2. Open pilot notebooks:
+   - `pixi run marimo edit notebooks/population-growth.py`
+   - `pixi run marimo edit notebooks/predator-prey.py`
+3. Full setup notes:
+   - `docs/marimo/README.md`
+
 ## Syllabus
 
 The course will introduce graduate students to models in population biology. We will build models, analyze them using mathematical and computational methods, and fit them to empirical data using statistical methods such as maximum likelihood and Bayesian inference. 

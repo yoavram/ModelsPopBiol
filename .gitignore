@@ -3,3 +3,7 @@
 *.nc
 *.npy
 *.npz
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml

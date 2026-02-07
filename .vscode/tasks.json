@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Pixi: install (locked)",
+      "type": "shell",
+      "command": "pixi",
+      "args": ["install", "--locked"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Marimo: edit current file",
+      "type": "shell",
+      "command": "pixi",
+      "args": ["run", "marimo", "edit", "${file}"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Marimo: run current file",
+      "type": "shell",
+      "command": "pixi",
+      "args": ["run", "marimo", "run", "${file}"],
+      "problemMatcher": []
+    }
+  ]
+}
