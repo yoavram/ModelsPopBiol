@@ -4,13 +4,6 @@ __generated_with = "0.19.8"
 app = marimo.App()
 
 
-@app.cell
-def _():
-    import marimo as mo
-
-    return (mo,)
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -24,9 +17,8 @@ def _(mo):
 
 @app.cell
 def _():
+    import marimo as mo
     from functools import partial
-
-    # '%matplotlib inline' command supported automatically in marimo
     import numpy as np
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -36,7 +28,7 @@ def _():
     import scipy
     from scipy.integrate import solve_ivp
 
-    return np, partial, plt, scipy, sns, solve_ivp
+    return mo, np, partial, plt, scipy, sns, solve_ivp
 
 
 @app.cell(hide_code=True)
@@ -60,10 +52,9 @@ def _(mo):
 
     The predator-prey model is summarized by these ordinary differential equations (ODE):
 
-    $$
-    \frac{dx}{dt} = b x - h x y $$$$
-    \frac{dy}{dt} = \epsilon h x y - d y
-    $$
+    $$ \frac{dx}{dt} = b x - h x y $$
+
+    $$ \frac{dy}{dt} = \epsilon h x y - d y $$
 
     where the parameters are:
     - $x$ is the density of the *prey* (hare, gnu, mouse)
@@ -88,10 +79,10 @@ def _(mo):
 
 @app.cell
 def _(np):
-    def dxydt(t, xy, b, h, eps, d):
+    def dxydt(t, xy, b, h, ε, d):
         x, y = xy
         dx = b * x - h * x * y
-        dy = eps * h * x * y - d * y
+        dy = ε * h * x * y - d * y
         return np.array([dx, dy])
 
     return (dxydt,)
@@ -109,10 +100,9 @@ def _(mo):
 
     First let's implement an integration method of our own by making a discrete linear approximation of the ODE:
 
-    $$
-    x_{t} = x_{t-1} + \frac{d x}{d t} \cdot dt $$$$
-    y_{t} = y_{t-1} + \frac{d y}{d t} \cdot dt
-    $$
+    $$ x_{t} = x_{t-1} + \frac{d x}{d t} \cdot dt $$
+
+    $$ y_{t} = y_{t-1} + \frac{d y}{d t} \cdot dt $$
 
     This is considered the simplest first-order integration method, called the [Euler method](https://en.wikipedia.org/wiki/Euler_method).
     """)
@@ -124,7 +114,7 @@ def _(dxydt, np):
     # model parameters
     b = 1
     h = 0.005
-    eps = 0.8
+    ε = 0.8
     d = 0.6
 
     steps = 100000 # number integration steps
@@ -133,12 +123,12 @@ def _(dxydt, np):
     dt = 0.001 # time step for integration
 
     for t in range(1, steps):
-        xy[:, t] = xy[:, t-1] + dxydt(t, xy[:, t-1], b, h, eps, d) * dt
+        xy[:, t] = xy[:, t-1] + dxydt(t, xy[:, t-1], b, h, ε, d) * dt
 
     x = xy[0, :]
     y = xy[1, :]
     t = np.arange(0, dt * steps, dt)
-    return b, d, h, t, x, y, eps
+    return b, d, h, t, x, y, ε
 
 
 @app.cell
@@ -151,6 +141,7 @@ def _(plt, sns, t, x, y):
     # bbox_to_anchor places the legend at specific position, in this case outside the plot
     plt.legend(bbox_to_anchor=(1, 0.75))
     sns.despine()
+    plt.gcf()
     return
 
 
@@ -170,6 +161,7 @@ def _(plt, sns, x, y):
     plt.xlabel('Prey')
     plt.ylabel('Predator')
     sns.despine()
+    plt.gcf()
     return
 
 
@@ -190,28 +182,18 @@ def _(mo):
     mo.md(r"""
     Some of the solvers require the Jacobian, or the matrix of 2nd order parital derivatives:
 
-    $$
-    \mathbf{J}(x, y) =
-    \pmatrix{
-        \frac{\partial^2 x}{\partial t \partial x} & \frac{\partial^2 x}{\partial t \partial y} \\
-        \frac{\partial^2 y}{\partial t \partial x} & \frac{\partial^2 y}{\partial t \partial y}
-    } =
-    \pmatrix{
-        b - h y & -h x \\
-        \epsilon h y & \epsilon h x - d
-    }
-    $$
+    $$ \mathbf{J}(x, y) = \\(b - h y, -h x),\\ (\epsilon h y, \epsilon h x - d) $$
     """)
     return
 
 
 @app.cell
 def _(np):
-    def jac(t, xy, b, h, eps, d):
+    def jac(t, xy, b, h, ε, d):
         x, y = xy
         return np.array([
             [b - h * y, -h * x],
-            [eps * h * y, eps * h * x - d]
+            [ε * h * y, ε * h * x - d]
         ])
 
     return (jac,)
@@ -229,11 +211,11 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, dxydt, h, jac, np, partial, solve_ivp, eps):
+def _(b, d, dxydt, h, jac, np, partial, solve_ivp, ε):
     t_1 = np.linspace(0, 50, 50 * 10)
     xy0 = (50, 100)
-    dxydt_ = partial(dxydt, b=b, h=h, eps=eps, d=d)
-    jac_ = partial(jac, b=b, h=h, eps=eps, d=d)
+    dxydt_ = partial(dxydt, b=b, h=h, ε=ε, d=d)
+    jac_ = partial(jac, b=b, h=h, ε=ε, d=d)
     sol = solve_ivp(dxydt_, (t_1.min(), t_1.max()), xy0, t_eval=t_1, method='BDF', jac=jac_)
     return (sol,)
 
@@ -256,6 +238,7 @@ def _(plt, sns, sol):
 
     fig.tight_layout()
     sns.despine()
+    fig
     return
 
 
@@ -280,12 +263,28 @@ def _(mo):
 
 @app.cell
 def _(dxydt, jac, np, partial, plt, sns, solve_ivp):
-    def solve_plot(x0, y0, tmax, b, h, eps, d, q_dt=10, return_value=True):
+    def solve_plot(
+        x0,
+        y0,
+        tmax,
+        b,
+        h,
+        ε,
+        d,
+        q_dt=10,
+        return_value=True,
+        method="BDF",
+        rtol=1e-6,
+        atol=1e-9,
+    ):
         t = np.linspace(0, tmax, tmax*10)
         xy0 = (x0, y0)
-        dxydt_ = partial(dxydt, b=b, h=h, eps=eps, d=d)
-        jac_ = partial(jac, b=b, h=h, eps=eps, d=d)
-        sol = solve_ivp(dxydt_, (t.min(), t.max()), xy0, t_eval=t, method='BDF', jac=jac_)
+        dxydt_ = partial(dxydt, b=b, h=h, ε=ε, d=d)
+        jac_ = partial(jac, b=b, h=h, ε=ε, d=d)
+        solver_kwargs = {"t_eval": t, "method": method, "rtol": rtol, "atol": atol}
+        if method in {"BDF", "Radau"}:
+            solver_kwargs["jac"] = jac_
+        sol = solve_ivp(dxydt_, (t.min(), t.max()), xy0, **solver_kwargs)
 
         fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -301,7 +300,8 @@ def _(dxydt, jac, np, partial, plt, sns, solve_ivp):
         axes[0].legend(['Prey', 'Predator'])
         fig.tight_layout()
         sns.despine()
-        if return_value: return sol.t, sol.y
+        if return_value:
+            return sol.t, sol.y
 
     return (solve_plot,)
 
@@ -321,36 +321,54 @@ def _(mo):
     tmax_ui = mo.ui.slider(1, 1001, 10, value=100, show_value=True, label="tmax")
     b_ui = mo.ui.slider(0, 2, 0.1, value=1.0, show_value=True, label="b")
     h_ui = mo.ui.slider(0, 0.1, 0.001, value=0.005, show_value=True, label="h")
-    eps_ui = mo.ui.slider(0, 1, 0.01, value=0.8, show_value=True, label="eps")
+    ε_ui = mo.ui.slider(0, 1, 0.01, value=0.8, show_value=True, label="ε")
     d_ui = mo.ui.slider(0, 2, 0.1, value=0.6, show_value=True, label="d")
+    method_ui = mo.ui.dropdown(["BDF", "Radau", "RK45"], value="BDF", label="method")
+    rtol_exp_ui = mo.ui.slider(3, 10, 1, value=6, show_value=True, label="rtol: 1e-")
+    atol_exp_ui = mo.ui.slider(6, 14, 1, value=9, show_value=True, label="atol: 1e-")
 
     controls = mo.vstack(
         [
             mo.hstack([x0_ui, y0_ui, tmax_ui], justify="start", gap=1.0),
-            mo.hstack([b_ui, h_ui, eps_ui, d_ui], justify="start", gap=1.0),
+            mo.hstack([b_ui, h_ui, ε_ui, d_ui], justify="start", gap=1.0),
+            mo.hstack([method_ui, rtol_exp_ui, atol_exp_ui], justify="start", gap=1.0),
         ],
         gap=0.5,
     )
-    return b_ui, controls, d_ui, eps_ui, h_ui, tmax_ui, x0_ui, y0_ui
-
-
-@app.cell
-def _(controls):
     controls
-    return
+    return atol_exp_ui, b_ui, d_ui, h_ui, method_ui, rtol_exp_ui, tmax_ui, x0_ui, y0_ui, ε_ui
 
 
 @app.cell
-def _(b_ui, d_ui, eps_ui, h_ui, solve_plot, tmax_ui, x0_ui, y0_ui):
+def _(
+    atol_exp_ui,
+    b_ui,
+    d_ui,
+    h_ui,
+    method_ui,
+    plt,
+    rtol_exp_ui,
+    solve_plot,
+    tmax_ui,
+    x0_ui,
+    y0_ui,
+    ε_ui,
+):
+    rtol = 10.0 ** (-rtol_exp_ui.value)
+    atol = 10.0 ** (-atol_exp_ui.value)
     solve_plot(
         x0=x0_ui.value,
         y0=y0_ui.value,
         tmax=tmax_ui.value,
         b=b_ui.value,
         h=h_ui.value,
-        eps=eps_ui.value,
+        ε=ε_ui.value,
         d=d_ui.value,
+        method=method_ui.value,
+        rtol=rtol,
+        atol=atol,
     )
+    plt.gcf()
     return
 
 
@@ -363,12 +381,13 @@ def _(mo):
 
     Population equilibrium occurs in the model when neither of the populations change, that is, when both of the derivatives are equal to 0:
 
-    $$
-    bx - hxy = 0 $$$$
-    \epsilon h x y - d y = 0 \Rightarrow $$$$
-    x (b - hy) = 0 $$$$
-    y (\epsilon h x - d) = 0
-    $$
+    $$ bx - hxy = 0 $$
+
+    $$ \epsilon h x y - d y = 0 $$
+
+    $$ x (b - hy) = 0 $$
+
+    $$ y (\epsilon h x - d) = 0 $$
     """)
     return
 
@@ -379,10 +398,9 @@ def _(mo):
     The trivial solutions have $x=0$ and/or $y=0$.
     Assuming both are positive,
 
-    $$
-    x^* = \frac{d}{\epsilon h} $$$$
-    y^* = \frac{b}{h}
-    $$
+    $$ x^* = \frac{d}{\epsilon h} $$
+
+    $$ y^* = \frac{b}{h} $$
 
     - Equilibrium predator density $y^*$ is defined by the ratio of prey birth rate and predation rate.
     - Equilibrium prey density $x^*$ is defined by the ratio of predator death rate and prey-predator conversion rate.
@@ -401,11 +419,11 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, dxydt, h, eps):
-    xystar = d/(eps*h), b/h
+def _(b, d, dxydt, h, ε):
+    xystar = d/(ε*h), b/h
     print(xystar)
     xstar, ystar = xystar
-    print(dxydt(0, xystar, b=b, h=h, eps=eps, d=d))
+    print(dxydt(0, xystar, b=b, h=h, ε=ε, d=d))
     return xstar, xystar, ystar
 
 
@@ -418,10 +436,11 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, h, np, solve_plot, xstar, xystar, ystar, eps):
-    t_2, xy_1 = solve_plot(x0=xstar, y0=ystar, tmax=100, b=b, h=h, eps=eps, d=d)
+def _(b, d, h, np, plt, solve_plot, xstar, xystar, ystar, ε):
+    t_2, xy_1 = solve_plot(x0=xstar, y0=ystar, tmax=100, b=b, h=h, ε=ε, d=d)
     assert np.allclose(xy_1[0, :], xystar[0])
     assert np.allclose(xy_1[1, :], xystar[1])
+    plt.gcf()
     return
 
 
@@ -441,7 +460,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    We concentrate on small perturbations, that is, the concept of **local stability** (see [notebook on stability analysis](stability.ipynb) or ch. 8 in Otto and Day 2007).
+    We concentrate on small perturbations, that is, the concept of **local stability** (see [notebook on stability analysis](stability.py) or ch. 8 in Otto and Day 2007).
 
     Let's perturbe the equilibrium and check what the values of the ODE are.
     """)
@@ -449,25 +468,55 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, dxydt, h, xstar, ystar, eps):
-    xypert = xstar * 1.01, ystar * 1.01
+def _(mo):
+    perturb_pct_ui = mo.ui.slider(
+        0.1, 20.0, 0.1, value=1.0, show_value=True, label="perturbation (%)"
+    )
+    direction_ui = mo.ui.dropdown(
+        [
+            "both up",
+            "both down",
+            "prey up / predator down",
+            "prey down / predator up",
+        ],
+        value="both up",
+        label="direction",
+    )
+    perturb_controls = mo.hstack([perturb_pct_ui, direction_ui], justify="start", gap=1.0)
+    perturb_controls
+    return direction_ui, perturb_pct_ui
+
+
+@app.cell
+def _(b, d, direction_ui, dxydt, h, perturb_pct_ui, xstar, ystar, ε):
+    direction_to_sign = {
+        "both up": (1, 1),
+        "both down": (-1, -1),
+        "prey up / predator down": (1, -1),
+        "prey down / predator up": (-1, 1),
+    }
+    sign_x, sign_y = direction_to_sign[direction_ui.value]
+    delta = perturb_pct_ui.value / 100.0
+    xypert = xstar * (1 + sign_x * delta), ystar * (1 + sign_y * delta)
+    print("perturbation:", direction_ui.value, f"{perturb_pct_ui.value:.1f}%")
     print(xypert)
-    print(dxydt(0, xypert, b=b, h=h, eps=eps, d=d))
+    print(dxydt(0, xypert, b=b, h=h, ε=ε, d=d))
     return (xypert,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    So after this perturbation, the prey population will decrease in size $\frac{dx}{dt}<0$ and the predator population will increase $\frac{dy}{dt}>0$.
+    For this perturbation, inspect $\frac{dx}{dt}$ and $\frac{dy}{dt}$ above to see the immediate direction of change.
     """)
     return
 
 
 @app.cell
-def _(b, d, h, plt, solve_plot, xypert, xystar, eps):
-    t_3, xy_2 = solve_plot(*xypert, tmax=100, b=b, h=h, eps=eps, d=d)
+def _(b, d, h, plt, solve_plot, xypert, xystar, ε):
+    t_3, xy_2 = solve_plot(*xypert, tmax=100, b=b, h=h, ε=ε, d=d)
     plt.plot(*xystar, 'or')
+    plt.gcf()
     return (xy_2,)
 
 
@@ -482,9 +531,10 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, h, plt, solve_plot, xy_2, xystar, eps):
-    solve_plot(*xy_2[:, -1], tmax=1500, b=b, h=h, eps=eps, d=d)
+def _(b, d, h, plt, solve_plot, xy_2, xystar, ε):
+    solve_plot(*xy_2[:, -1], tmax=1500, b=b, h=h, ε=ε, d=d)
     plt.plot(*xystar, 'or')
+    plt.gcf()
     return
 
 
@@ -505,8 +555,8 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, h, jac, xystar, eps):
-    J = jac(0, xystar, b, h, eps, d) # the first argument is time, which doesn't matter in this system
+def _(b, d, h, jac, xystar, ε):
+    J = jac(0, xystar, b, h, ε, d) # the first argument is time, which doesn't matter in this system
     print(J)
     return (J,)
 
@@ -551,13 +601,10 @@ def _(jac, np, scipy):
 
 @app.cell
 def _(is_stable, np):
-    b_ = 2/3
-    h_ = 4/3
-
-    epss = np.linspace(1e-6, 1, 51)
+    εs = np.linspace(1e-6, 1, 51)
     ds = np.linspace(0, 1, 50)
 
-    ρs = [is_stable(b_, h_, eps, d) for eps in epss for d in ds]
+    ρs = [is_stable(2/3, 4/3, ε_, d) for ε_ in εs for d in ds]
     ρs = np.array(ρs).reshape(51, 50)
     return (ρs,)
 
@@ -589,12 +636,14 @@ def _():
 
 @app.cell
 def _(sympy):
-    x_1, y_1, b__1, h__1, eps_, d_ = sympy.symbols('x y b h eps d')
-    dxdt = b__1 * x_1 - h__1 * x_1 * y_1
-    dydt = eps_ * h__1 * x_1 * y_1 - d_ * y_1
-    J_1 = sympy.Matrix([[sympy.diff(dxdt, x_1), sympy.diff(dxdt, y_1)], [sympy.diff(dydt, x_1), sympy.diff(dydt, y_1)]])
-    J_1
-    return J_1, b__1, d_, h__1, x_1, y_1, eps_
+    x_, y_, b_, h_, ε_, d_ = sympy.symbols(r'x y b h \epsilon d')
+    dxdt = b_ * x_ - h_ * x_ * y_
+    dydt = ε_ * h_ * x_ * y_ - d_ * y_
+    J_ = sympy.Matrix(
+        [[sympy.diff(dxdt, x_), sympy.diff(dxdt, y_)], 
+         [sympy.diff(dydt, x_), sympy.diff(dydt, y_)]])
+    J_
+    return J_, b_, d_, h_, x_, y_, ε_
 
 
 @app.cell(hide_code=True)
@@ -606,8 +655,8 @@ def _(mo):
 
 
 @app.cell
-def _(J_1, x_1, y_1):
-    J_1.subs({x_1: 0, y_1: 0}).eigenvals()
+def _(J_, x_, y_):
+    J_.subs({x_: 0, y_: 0}).eigenvals()
     return
 
 
@@ -623,9 +672,9 @@ def _(mo):
 
 
 @app.cell
-def _(J_1, b__1, d_, h__1, x_1, y_1, eps_):
-    _eigs = J_1.subs({x_1: d_ / (eps_ * h__1), y_1: b__1 / h__1}).eigenvals()
-    _eigs
+def _(J_, b_, d_, h_, x_, y_, ε_):
+    eigs = J_.subs({x_: d_ / (ε_ * h_), y_: b_ / h_}).eigenvals()
+    eigs
     return
 
 
@@ -642,8 +691,9 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, h, solve_plot, eps):
-    t_4, xy_3 = solve_plot(76, 211, tmax=100, b=b, h=h, eps=eps, d=d)
+def _(b, d, h, plt, solve_plot, ε):
+    solve_plot(76, 211, tmax=100, b=b, h=h, ε=ε, d=d)
+    plt.gcf()
     return
 
 
@@ -661,8 +711,9 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, h, solve_plot, ystar, eps):
-    solve_plot(0, ystar, 10, b, h, eps, d);
+def _(b, d, h, plt, solve_plot, ystar, ε):
+    solve_plot(0, ystar, 10, b, h, ε, d);
+    plt.gcf()
     return
 
 
@@ -675,8 +726,9 @@ def _(mo):
 
 
 @app.cell
-def _(b, d, h, solve_plot, xstar, eps):
-    solve_plot(xstar, 0, 10, b, h, eps, d);
+def _(b, d, h, plt, solve_plot, xstar, ε):
+    solve_plot(xstar, 0, 10, b, h, ε, d);
+    plt.gcf()
     return
 
 

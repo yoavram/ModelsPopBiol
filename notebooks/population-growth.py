@@ -4,13 +4,6 @@ __generated_with = "0.19.8"
 app = marimo.App()
 
 
-@app.cell
-def _():
-    import marimo as mo
-
-    return (mo,)
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -24,12 +17,12 @@ def _(mo):
 
 @app.cell
 def _():
-    # '%matplotlib inline' command supported automatically in marimo
+    import marimo as mo
     import numpy as np
     import matplotlib.pyplot as plt
     import seaborn as sns
     sns.set_context('talk')
-    return np, plt, sns
+    return mo, np, plt, sns
 
 
 @app.cell(hide_code=True)
@@ -40,39 +33,37 @@ def _(mo):
     How do we model the growth of a population?
 
     According to [Malthus](http://en.wikipedia.org/wiki/Thomas_Robert_Malthus), if the rate of births is $b$ per time unit and the rate of deaths is $d$ per time unit, then the change in the number of individuals $N(t)$ is given by
-    $$
-    N(t+\Delta t) = N(t) + N(t) b \Delta t - N(t) d \Delta t \Rightarrow $$$$
-    \frac{N(t+\Delta t) - N(t)}{\Delta t} = b N(t) - d N(t) = r N(t)
-    $$
+
+    $$ N(t+\Delta t) = N(t) + N(t) b \Delta t - N(t) d \Delta t \Rightarrow $$
+
+    $$ \frac{N(t+\Delta t) - N(t)}{\Delta t} = b N(t) - d N(t) = r N(t) $$
+
     where $r = b-d$ is the specific growth rate, and effective parameter (i.e., per capita growth rate).
     If we take $\Delta t \to 0$, then the instantaneous rate of growth (or decline) of the population is
-    $$
-    \frac{dN(t)}{dt} = b N(t) - d N(t) = r N(t)
-    $$
+
+    $$ \frac{dN(t)}{dt} = b N(t) - d N(t) = r N(t) $$
 
     This is called the Malthusian growth model or more commonly the [exponential growth model](https://en.wikipedia.org/wiki/Exponential_growth).
 
     This ordinary differential equation, or ODE, can be solved via [logarithmic differentiation](https://en.wikipedia.org/wiki/Logarithmic_differentiation):
 
-    $$
-    \frac{dN(t)}{dt} = r N(t) \Rightarrow $$$$
-    \frac{1}{N(t)} \frac{dN(t)}{dt} = r \Rightarrow $$$$
-    \frac{d \log{N(t)}}{dt} = r \Rightarrow $$$$
-    \log{N(t)} =  r t + C \Rightarrow $$$$
-    N(t) = e^{rt + C} = e^{C} e^{rt}
-    $$
+    $$ \frac{dN(t)}{dt} = r N(t) $$
+
+    $$ \frac{1}{N(t)} \frac{dN(t)}{dt} = r $$
+
+    $$ \frac{d \log{N(t)}}{dt} = r $$
+
+    $$ \log{N(t)} =  r t + C $$
+
+    $$ N(t) = e^{rt + C} = e^{C} e^{rt} $$
 
     Now add the boundary condition $N(0) = N_0$ to get
 
-    $$
-    e^{C} = N_0
-    $$
+    $$ e^{C} = N_0 $$
 
     and finally
 
-    $$
-    N(t) = N_0 e^{rt}
-    $$
+    $$ N(t) = N_0 e^{rt} $$
 
     Note that during the integration we found that the **logarithm of the population should be a linear function of time** $\log{N(t)} = \log{N(0)} + rt$.
 
@@ -96,7 +87,8 @@ def _(N, plt, sns, t):
     plt.plot(t, N)
     plt.xlabel('Time (hr)')
     plt.ylabel('Population size (cells)')
-    sns.despine();
+    sns.despine()
+    plt.gcf()
     return
 
 
@@ -121,10 +113,9 @@ def _(mo):
 
     For example, consider a population $N(t)$ which consumes a resource $R(t)$ to grow.
 
-    $$
-    \frac{dR(t)}{dt} = -h R(t) N(t) $$$$
-    \frac{dN(t)}{dt} = \epsilon h R(t) N(t)
-    $$
+    $$ \frac{dR(t)}{dt} = -h R(t) N(t) $$
+
+    $$ \frac{dN(t)}{dt} = \epsilon h R(t) N(t) $$
 
     From now on we will omit the $(t)$ after $N$ and $R$, for convenience.
 
@@ -136,20 +127,19 @@ def _(mo):
 
     So, we have
 
-    $$
-    \frac{dN}{dt} = \epsilon h R N  = $$$$
-    \epsilon h N (K-N) \Rightarrow $$$$
-    \frac{dN}{dt} = r N \left(1-\frac{N}{K}\right)
-    $$
+    $$ \frac{dN}{dt} = \epsilon h R N $$
+
+    $$ \frac{dN}{dt} = \epsilon h N (K-N) $$
+
+    $$ \frac{dN}{dt} = r N \left(1-\frac{N}{K}\right) $$
+
     where $r = h / K$.
 
     This is called the _logistic ordinary differential equation_.
 
     We can solve this equation by a similar approach to the exponential model, using integration.
 
-    $$
-    N(t) = \frac{K}{1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t} }
-    $$
+    $$ N(t) = \frac{K}{1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t} } $$
     """)
     return
 
@@ -173,6 +163,40 @@ def _(logistic, np, plt, sns):
     plt.xlabel('Time (hr)')
     plt.ylabel('Population size (cells)')
     sns.despine()
+    plt.gcf()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Use sliders to explore logistic-growth parameters:
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    N0_ui = mo.ui.slider(1, 10000, 1, value=100, show_value=True, label="N0")
+    r_ui = mo.ui.slider(0.1, 3.0, 0.1, value=1.0, show_value=True, label="r")
+    K_ui = mo.ui.slider(1000, 1000000, 1000, value=100000, show_value=True, label="K")
+    tmax_ui = mo.ui.slider(1, 72, 1, value=24, show_value=True, label="tmax")
+
+    controls = mo.hstack([N0_ui, r_ui, K_ui, tmax_ui], justify="start", gap=1.0),
+    controls
+    return K_ui, N0_ui, r_ui, tmax_ui
+
+
+@app.cell
+def _(K_ui, N0_ui, logistic, np, plt, r_ui, sns, tmax_ui):
+    t_ui = np.linspace(0, tmax_ui.value, 500)
+    N_ui = logistic(t_ui, N0_ui.value, r_ui.value, K_ui.value)
+    plt.plot(t_ui, N_ui, label="N(t)")
+    plt.xlabel("Time (hr)")
+    plt.ylabel("Population size (cells)")
+    plt.legend()
+    sns.despine()
+    plt.gcf()
     return
 
 
@@ -199,6 +223,7 @@ def _(logistic, np, plt, sns):
     axes[2].legend(bbox_to_anchor=(1, 0.9))
     fig.tight_layout()
     sns.despine()
+    fig
     return N0_2, t_2
 
 
@@ -206,9 +231,8 @@ def _(logistic, np, plt, sns):
 def _(mo):
     mo.md(r"""
     Let's look again at the logistic ODE:
-    $$
-    \frac{dN}{dt} = r N \left(1-\frac{N}{K}\right) = rN - r \frac{N^2}{K}
-    $$
+
+    $$ \frac{dN}{dt} = r N \left(1-\frac{N}{K}\right) = rN - r \frac{N^2}{K} $$
     """)
     return
 
@@ -219,10 +243,11 @@ def _(mo):
     You can see that $dN/dt$ will reach its minimum zero when $N=0$ and when $N=K$.
 
     To find its maximum, let's take a derivative with respect to $N$ and solve for zero:
-    $$
-    \frac{d^2N}{dtdN} = r - 2r\frac{N}{K} = 0 \Rightarrow $$$$
-    N = \frac{K}{2}
-    $$
+
+    $$ \frac{d^2N}{dtdN} = r - 2r\frac{N}{K} = 0 $$
+
+    $$ N = \frac{K}{2} $$
+
     So the maximum of the derivative $dN/dt$ will be reached exactly when $N=K/2$; at this point, growth will stop accelerating and begin to deccelerate until it halts at $N=K$.
     The maximum derivative will be $r K/4$ (just substitue $N=K/2$).
     """)
@@ -240,6 +265,7 @@ def _(N0_2, logistic, plt, t_2):
     plt.axhline(K_2, color='k', ls='--')
     plt.xlabel('Time (hr)')
     plt.ylabel('Population size (cells)')
+    plt.gcf()
     return K_2, N_3, r_3
 
 
@@ -248,16 +274,22 @@ def _(mo):
     mo.md(r"""
     When will $N$ reach $K/2$?
     We can check this in the solution to the ODE:
-    $$
-    N(t) = \frac{K}{1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t} } = K/2 \Rightarrow $$$$
-    \frac{1}{1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t} } = 1/2 \Rightarrow $$$$
-    1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t}  = 2 \Rightarrow $$$$
-    \left( 1 - \frac{K}{N(0)} \right) e^{-r t}  = -1 \Rightarrow $$$$
-    1 - \frac{K}{N(0)}   = -e^{r t} \Rightarrow $$$$
-    \frac{K-N(0)}{N(0)}  = e^{r t} \Rightarrow $$$$
-    \log{\frac{K-N(0)}{N(0)}}  = r t \Rightarrow $$$$
-    \frac{\log{\left(K-N(0)\right)} - \log{\left(N(0)\right)}}{r}  = t
-    $$
+
+    $$ N(t) = \frac{K}{1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t} } = K/2 $$
+
+    $$ \frac{1}{1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t} } = 1/2 $$
+
+    $$ 1 - \left( 1 - \frac{K}{N(0)} \right) e^{-r t}  = 2 $$
+
+    $$ \left( 1 - \frac{K}{N(0)} \right) e^{-r t}  = -1 $$
+
+    $$ 1 - \frac{K}{N(0)}   = -e^{r t} $$
+
+    $$ \frac{K-N(0)}{N(0)}  = e^{r t} $$
+
+    $$ \log{\frac{K-N(0)}{N(0)}}  = r t $$
+
+    $$ \frac{\log{\left(K-N(0)\right)} - \log{\left(N(0)\right)}}{r}  = t $$
     """)
     return
 
@@ -269,6 +301,7 @@ def _(K_2, N0_2, N_3, np, plt, r_3, t_2):
     plt.axhline(r_3 * K_2 / 4, color='k', ls='--')
     plt.xlabel('Time (hr)')
     plt.ylabel('dN/dt')
+    plt.gcf()
     return
 
 
@@ -287,15 +320,13 @@ def _(mo):
 
     The [generalized logistic model](https://en.wikipedia.org/wiki/Generalised_logistic_function) (also called the [Richards model](https://doi.org/10.1093/jxb/10.2.290)) has an additional parameter $\nu$ so that the curve doesn't have to be symmetric, that is, the time to get to $K/2$ can be longer/shorter than the time to get from $K/2$ to $K$.
 
-    $$
-    \frac{d N}{d t}= r N \left(1 - \left(\frac{N}{K}\right)^{\nu}\right)
-    $$
+    $$ \frac{d N}{d t}= r N \left(1 - \left(\frac{N}{K}\right)^{\nu}\right) $$
+
     The other parameters are the same as the logistic model.
 
     This model can also be solved:
-    $$
-    N(t) = \frac{K}{\left(1 - \left( 1 - \left(\frac{K}{N(0)}\right)^{\nu} \right) e^{-r \nu t} \right)^{1/\nu}}
-    $$
+
+    $$ N(t) = \frac{K}{\left(1 - \left( 1 - \left(\frac{K}{N(0)}\right)^{\nu} \right) e^{-r \nu t} \right)^{1/\nu}} $$
     """)
     return
 
@@ -320,6 +351,7 @@ def _(N0_2, generalized_logistic, logistic, plt, t_2):
     plt.legend()
     plt.xlabel('Time (hr)')
     plt.ylabel('Population size (cells)')
+    plt.gcf()
     return
 
 
