@@ -17,7 +17,6 @@ def _(mo):
 @app.cell
 def _():
     import marimo as mo
-    # '%matplotlib inline' command supported automatically in marimo
     import numpy as np
     import matplotlib.pyplot as plt
     import numba
@@ -61,11 +60,11 @@ def _(mo):
     # Continuous-time deterministic model
     The _deterministic_ equations, which describe the expected dynamics, are
 
-       $$ \frac{dS}{dt} = -\beta I S , $$
+    $$ \frac{dS}{dt} = -\beta I S , $$
 
-       $$ \frac{dI}{dt} = \beta I S - \gamma I, $$
+    $$ \frac{dI}{dt} = \beta I S - \gamma I, $$
 
-       $$ \frac{dR}{dt} = \gamma I $$
+    $$ \frac{dR}{dt} = \gamma I $$
 
 
 
@@ -75,7 +74,7 @@ def _(mo):
 
     This gives the constraint
 
-       $$ \frac{dS}{dt} + \frac{dI}{dt} + \frac{dR}{dt} = 0 , $$
+    $$ \frac{dS}{dt} + \frac{dI}{dt} + \frac{dR}{dt} = 0 , $$
 
 
     which reduces the degrees of freedom in the system, just like in the logistic growth model.
@@ -121,7 +120,7 @@ def _(mo):
     mo.md(r"""
     So we have
 
-       $$ S(t) = S_0 \cdot e^{- \frac{\beta}{\gamma} R(t)} $$
+    $$ S(t) = S_0 \cdot e^{- \frac{\beta}{\gamma} R(t)} $$
 
 
 
@@ -153,7 +152,7 @@ def _(mo):
     Following [Wang 2010](https://doi.org/10.4169/074683410X480276), This can be solved in terms of a **Lambert W function**.
     Setting $S_0=1$ (as we assume that most of the population is susceptible at the begining), $x=-\beta/\gamma$ and $y=-\beta/\gamma S^*$, we get that
 
-       $$ ye^{y} = xe^{x} $$
+    $$ ye^{y} = xe^{x} $$
     """)
     return
 
@@ -165,16 +164,16 @@ def _(mo):
     1. $x=y$, that is, $S^*=1$, and the epidemic doesn't occur beyond the initial infectious individuals.
     1. If $x<-1$, that is, $\beta/\gamma>1$, then $y=W_0(xe^{x})$, that is,
 
-       $$ S^* = -\frac{\gamma}{\beta} W_0\left(-\frac{\beta}{\gamma} e^{-\frac{\beta}{\gamma}}\right) $$
+    $$ S^* = -\frac{\gamma}{\beta} W_0\left(-\frac{\beta}{\gamma} e^{-\frac{\beta}{\gamma}}\right) $$
 
 
     1. If $-1<x<0$, that is, $0 < \beta/\gamma < 1$, then $y=W_1(xe^{x})$. However, $W_1(\cdot)<-1$, and therefore $-\frac{\gamma}{\beta} W_1\left(-\frac{\beta}{\gamma} e^{-\frac{\beta}{\gamma}}\right) > 1$, which is not an acceptable solution for $S^*$.
 
     Therefore, the epidemic will only occur if $\beta>\gamma$, and in that case the number of recovered (hence also the accumulated number of infectious) will be
 
-       $$ R^* = 1-S^*, $$
+    $$ R^* = 1-S^*, $$
 
-       $$ S^* = -\frac{\gamma}{\beta} W\left(-S_0 \frac{\beta}{\gamma} e^{-\beta/\gamma}\right). $$
+    $$ S^* = -\frac{\gamma}{\beta} W\left(-S_0 \frac{\beta}{\gamma} e^{-\beta/\gamma}\right). $$
 
 
 
@@ -325,7 +324,7 @@ def _(mo):
     mo.md(r"""
     The change in the distribution from time $t$ to time $t+dt$ can then be described by changes from $S$ to $S+1$, from $S-1$ to $S$, and similarly for $I$ and $R$.
 
-       $$
+    $$
 
     \begin{aligned}
     f_{t+dt}(S, I, R) =
@@ -334,7 +333,7 @@ def _(mo):
         & f_t(S, I+1, R-1) \, \gamma (I+1) \,dt
     \end{aligned}
 
-       $$
+    $$
     """)
     return
 
@@ -344,7 +343,7 @@ def _(mo):
     mo.md(r"""
     This can be rearranged to:
 
-       $$
+    $$
 
     \begin{aligned}
     \frac{f_{t+dt}(S, I, R) - f_t(S, I, R)}{dt} =
@@ -353,7 +352,7 @@ def _(mo):
          & f_t(S, I+1, R-1) \, \gamma (I+1)
     \end{aligned}
 
-       $$
+    $$
     """)
     return
 

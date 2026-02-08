@@ -65,7 +65,7 @@ def _(mo):
 
     So the probability that an $A$ individual leaves $k$ offspring is
 
-       $$ P(k) = e^{-(1+s)}\frac{(1+s)^k}{k!} $$
+    $$ P(k) = e^{-(1+s)}\frac{(1+s)^k}{k!} $$
     """)
     return
 
@@ -99,8 +99,7 @@ def _(mo):
 
     So we get the extinction probability
 
-       $$ p_{loss} = e^{-\left(1-p_{loss}\right)\left(1+s\right)} $$
-
+    $$ p_{loss} = e^{-\left(1-p_{loss}\right)\left(1+s\right)} $$
 
     and the complement is the fixation probability, $p_{fix} = 1-p_{loss}$.
 
@@ -131,18 +130,18 @@ def _(mo):
 
 @app.cell
 def _(np, plt, sol):
-    s_1 = np.logspace(-5, -1)
-    pfix = np.array([1 - sol.evalf(subs=dict(s=s_)) for s_ in s_1])
-    plt.plot(s_1, pfix)
+    selection_grid = np.logspace(-5, -1)
+    pfix = np.array([1 - sol.evalf(subs=dict(s=_s)) for _s in selection_grid])
+    plt.plot(selection_grid, pfix)
     plt.xlabel('Selection cofficient, $s$')
     plt.ylabel('Fixation probability, $p_{fix}$')
     plt.gcf()
-    return pfix, s_1
+    return pfix, selection_grid
 
 
 @app.cell
-def _(pfix, plt, s_1):
-    plt.plot(s_1, pfix / s_1)
+def _(pfix, plt, selection_grid):
+    plt.plot(selection_grid, pfix / selection_grid)
     plt.xlabel('Selection coefficient, $s$')
     plt.ylabel('$p_{fix}/s$')
     plt.gcf()
@@ -162,15 +161,11 @@ def _(mo):
     mo.md(r"""
     We can rewrite the formula in terms of $p_{fix}=1-p_{loss}$:
 
-       $$ p_{fix} = 1-e^{-(1+s)p_{fix}} $$
-
-
+    $$ p_{fix} = 1-e^{-(1+s)p_{fix}} $$
 
     If we assume that $s$ and $p_{fix}$ are both *small* (i.e. porportional to some small $\epsilon$), we can use the Taylor expansion for the exponential function (again) to get, up to term of order $o(\epsilon^3)$,
 
-       $$ p_{fix} \approx (1+s)p_{fix} - \frac{1}{2}\big((1+s)p_{fix}\big)^2 $$
-
-
+    $$ p_{fix} \approx (1+s)p_{fix} - \frac{1}{2}\big((1+s)p_{fix}\big)^2 $$
 
     To solve this we do some algebra and assumpe $p_{fix} \ne 0$,
 
@@ -185,7 +180,6 @@ def _(mo):
     \end{aligned}
     $$
 
-
     since $s$ is small.
 
     Let's compare it to the full result (the Lambert W function).
@@ -194,10 +188,10 @@ def _(mo):
 
 
 @app.cell
-def _(pfix, plt, s_1):
-    plt.plot(s_1, pfix, label='Lambert W')
-    plt.plot(s_1, 2 * s_1 / (1 + s_1) ** 2, label='$2s/(1+s)^2$')
-    plt.plot(s_1, 2 * s_1, label='$2s$')
+def _(pfix, plt, selection_grid):
+    plt.plot(selection_grid, pfix, label='Lambert W')
+    plt.plot(selection_grid, 2 * selection_grid / (1 + selection_grid) ** 2, label='$2s/(1+s)^2$')
+    plt.plot(selection_grid, 2 * selection_grid, label='$2s$')
     plt.xlabel('Selection coefficient, $s$')
     plt.ylabel('Fixation probability, $p_{fix}$')
     plt.legend()
@@ -253,9 +247,18 @@ def _(mo):
 
 
 @app.cell
-def _():
-    from IPython.display import HTML
-    HTML("""<script async class="speakerdeck-embed" data-id="a82ed8531523453d86f7fc09c857749e" data-ratio="1.77777777777778" src="//speakerdeck.com/assets/embed.js"></script>""")
+def _(mo):
+    mo.Html(
+        """
+        <iframe
+          src="https://speakerdeck.com/player/a82ed8531523453d86f7fc09c857749e"
+          width="100%"
+          height="420"
+          style="border: 0;"
+          allowfullscreen
+        ></iframe>
+        """
+    )
     return
 
 
@@ -282,13 +285,13 @@ def _(plt, random):
         return n
     n0 = 200
     N = 1000
-    s_2 = 0.001
-    n = simulation_py(n0, N, s_2)
-    plt.plot(n)
+    _selection = 0.001
+    _trajectory = simulation_py(n0, N, _selection)
+    plt.plot(_trajectory)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
     plt.ylim(0, N)
-    plt.xlim(0, len(n))
+    plt.xlim(0, len(_trajectory))
     plt.gcf()
     return (simulation_py,)
 
@@ -318,17 +321,17 @@ def _(np, plt):
                 n = np.append(n, np.empty(buflen))
             n[t] = np.random.binomial(N, p)
         return n[:t + 1].copy()
-    n0_1 = 200
-    N_1 = 1000
-    s_3 = 0.001
-    n_1 = simulation_np(n0_1, N_1, s_3)
-    plt.plot(n_1)
+    wf_initial_count = 200
+    wf_pop_size = 1000
+    wf_selection = 0.001
+    _trajectory = simulation_np(wf_initial_count, wf_pop_size, wf_selection)
+    plt.plot(_trajectory)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
-    plt.ylim(0, N_1)
-    plt.xlim(0, len(n_1))
+    plt.ylim(0, wf_pop_size)
+    plt.xlim(0, len(_trajectory))
     plt.gcf()
-    return N_1, n0_1, s_3
+    return wf_initial_count, wf_pop_size, wf_selection
 
 
 @app.cell(hide_code=True)
@@ -360,21 +363,21 @@ def _(mo):
 
 
 @app.cell
-def _(N_1, n0_1, s_3, simulation_py):
+def _(wf_initial_count, wf_pop_size, wf_selection, simulation_py):
     def simulations_py(n0, N, s, repetitions=10):
         return [simulation_py(n0, N, s) for _ in range(repetitions)]
-    n_2 = simulations_py(n0_1, N_1, s_3, 100)
-    return (n_2,)
+    wf_trajectories_py = simulations_py(wf_initial_count, wf_pop_size, wf_selection, 100)
+    return (wf_trajectories_py,)
 
 
 @app.cell
-def _(N_1, n_2, plt):
-    for n_ in n_2:
-        plt.plot(n_, 'k', alpha=0.15)
+def _(plt, wf_pop_size, wf_trajectories_py):
+    for _trajectory in wf_trajectories_py:
+        plt.plot(_trajectory, 'k', alpha=0.15)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
-    plt.ylim(0, N_1)
-    plt.xlim(0, max((len(n_) for n_ in n_2)))
+    plt.ylim(0, wf_pop_size)
+    plt.xlim(0, max((len(_trajectory) for _trajectory in wf_trajectories_py)))
     plt.gcf()
     return
 
@@ -390,7 +393,7 @@ def _(mo):
 
 
 @app.cell
-def _(N_1, n0_1, np, plt, s_3):
+def _(np, plt, wf_initial_count, wf_pop_size, wf_selection):
     def simulations_np(n0, N, s, repetitions=10, buflen=1000):
         n = np.zeros((buflen, repetitions))
         n[0, :] = n0
@@ -405,14 +408,14 @@ def _(N_1, n0_1, np, plt, s_3):
             n[t, ~update] = n[t - 1, ~update]
             update = (n[t] > 0) & (n[t] < N)
         return n[:t].copy()
-    n_3 = simulations_np(n0_1, N_1, s_3, 100)
-    plt.plot(n_3, 'k', alpha=0.15)
+    wf_trajectories_np = simulations_np(wf_initial_count, wf_pop_size, wf_selection, 100)
+    plt.plot(wf_trajectories_np, 'k', alpha=0.15)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
-    plt.ylim(0, N_1)
-    plt.xlim(0, n_3.shape[0])
+    plt.ylim(0, wf_pop_size)
+    plt.xlim(0, wf_trajectories_np.shape[0])
     plt.gcf()
-    return (n_3,)
+    return (wf_trajectories_np,)
 
 
 @app.cell(hide_code=True)
@@ -428,9 +431,9 @@ def _(mo):
 
 
 @app.cell
-def _(N_1, n_3, plt):
-    idx = n_3.mean(axis=0).argsort()
-    plt.pcolormesh(n_3[:, idx].T / N_1)
+def _(plt, wf_pop_size, wf_trajectories_np):
+    _idx = wf_trajectories_np.mean(axis=0).argsort()
+    plt.pcolormesh(wf_trajectories_np[:, _idx].T / wf_pop_size)
     plt.colorbar(label='Frequency of $A$')
     plt.xlabel('Generation')
     plt.ylabel('Repetition')
@@ -493,17 +496,17 @@ def _(mo):
 @app.cell
 def _(fix_prob, np):
     Ns = np.logspace(1, 6, 100, dtype=int)
-    s_4 = 0.001
-    n0_2 = 1
-    reps = 1000
-    pfix_1 = np.array([fix_prob(n0_2, N, s_4, reps) for N in Ns])
-    return Ns, n0_2, pfix_1, s_4
+    kimura_selection = 0.001
+    kimura_initial_count = 1
+    _reps = 1000
+    pfix_simulated = np.array([fix_prob(kimura_initial_count, N, kimura_selection, _reps) for N in Ns])
+    return Ns, kimura_initial_count, kimura_selection, pfix_simulated
 
 
 @app.cell
-def _(Ns, pfix_1, plt, s_4):
-    plt.plot(Ns, pfix_1, '.', label='simulations')
-    plt.axhline(2 * s_4, ls='--', color='k', label='$2s$')
+def _(Ns, kimura_selection, pfix_simulated, plt):
+    plt.plot(Ns, pfix_simulated, '.', label='simulations')
+    plt.axhline(2 * kimura_selection, ls='--', color='k', label='$2s$')
     plt.xlabel('Population size, $N$')
     plt.xscale('log')
     plt.ylabel('Fixation probability, $p_{fix}$')
@@ -520,9 +523,7 @@ def _(mo):
     There is a rather good approximation even for small population sizes.
     Using a diffusion equation approximation, [Kimura (1962)](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1210364/) reached his famous equation:
 
-       $$ p_{fix}=\frac{1 - e^{-2 n_0 s}}{1 - e^{-2 N s}} $$
-
-
+    $$ p_{fix}=\frac{1 - e^{-2 n_0 s}}{1 - e^{-2 N s}} $$
 
     For large $N$, the denominator is roughly 1, and if $s$ is small than we can approximate this by $2s$.
 
@@ -552,10 +553,10 @@ def _(mo):
 
 
 @app.cell
-def _(Ns, fix_kimura, n0_2, pfix_1, plt, s_4):
-    plt.plot(Ns, pfix_1, '.', alpha=0.85, label='simulation')
-    plt.plot(Ns, fix_kimura(n0_2, Ns, s_4), '-', label='Kimura')
-    plt.axhline(2 * s_4 / (1 + s_4), ls='--', color='k', label='$2s$')
+def _(Ns, fix_kimura, kimura_initial_count, kimura_selection, pfix_simulated, plt):
+    plt.plot(Ns, pfix_simulated, '.', alpha=0.85, label='simulation')
+    plt.plot(Ns, fix_kimura(kimura_initial_count, Ns, kimura_selection), '-', label='Kimura')
+    plt.axhline(2 * kimura_selection / (1 + kimura_selection), ls='--', color='k', label='$2s$')
     plt.xlabel('N')
     plt.xscale('log')
     plt.ylabel('$p_{fix}$')
@@ -576,11 +577,9 @@ def _(mo):
 
 @app.cell
 def _(np):
-    Ns_ = np.logspace(1, 6, 5000, dtype=np.int64)
-    # magic command not supported in marimo; please file an issue to add support
-    # %timeit [fix_kimura(n0, N, s) for N in Ns_]
-    # magic command not supported in marimo; please file an issue to add support
-    # %timeit fix_kimura(n0, Ns_, s)
+    _population_sizes = np.logspace(1, 6, 5000, dtype=np.int64)
+    # %timeit [fix_kimura(n0, N, s) for N in _population_sizes]
+    # %timeit fix_kimura(n0, _population_sizes, s)
     return
 
 
@@ -595,10 +594,18 @@ def _(mo):
 
 
 @app.cell
-def _(N_1, fix_kimura, n0_2, s_4):
+def _(fix_kimura, kimura_initial_count, kimura_selection, wf_pop_size):
     import numba
     fix_kimura_nm = numba.jit(fix_kimura)
-    fix_kimura_nm(n0_2, N_1, s_4)  # burn-in for the jit to work
+    fix_kimura_nm(kimura_initial_count, wf_pop_size, kimura_selection)  # burn-in for the jit to work
+    return
+
+
+@app.cell
+def _(np):
+    # %timeit fix_kimura(n0, Ns, s)
+    # %timeit fix_kimura_nm(n0, Ns, s)
+    _population_sizes = np.logspace(1, 6, 100, dtype=float)
     return
 
 
@@ -607,16 +614,7 @@ def _(np):
     # magic command not supported in marimo; please file an issue to add support
     # %timeit fix_kimura(n0, Ns, s)
     # %timeit fix_kimura_nm(n0, Ns, s)
-    Ns_1 = np.logspace(1, 6, 100, dtype=float)
-    return
-
-
-@app.cell
-def _(np):
-    # magic command not supported in marimo; please file an issue to add support
-    # %timeit fix_kimura(n0, Ns, s)
-    # %timeit fix_kimura_nm(n0, Ns, s)
-    Ns_2 = np.logspace(1, 6, 10000, dtype=float)
+    _population_sizes = np.logspace(1, 6, 10000, dtype=float)
     return
 
 
@@ -652,11 +650,11 @@ def _(np):
 
 @app.cell
 def _(fix_time):
-    n0_3 = 10
-    N_2 = 1000
-    s_5 = 0.01
-    fixations, times = fix_time(n0_3, N_2, s_5, 100000)
-    return N_2, fixations, n0_3, s_5, times
+    fixation_initial_count = 10
+    fixation_pop_size = 1000
+    fixation_selection = 0.01
+    fixations, times = fix_time(fixation_initial_count, fixation_pop_size, fixation_selection, 100000)
+    return fixation_initial_count, fixation_pop_size, fixation_selection, fixations, times
 
 
 @app.cell(hide_code=True)
@@ -668,11 +666,11 @@ def _(mo):
 
 
 @app.cell
-def _(N_2, fixations, n0_3, np, plt, s_5, sns, times):
-    fig, ax = plt.subplots()
+def _(fixation_initial_count, fixation_pop_size, fixation_selection, fixations, np, plt, sns, times):
+    _fig, ax = plt.subplots()
     ax.hist(times[fixations], bins=100, density=True, label='fixations')
     ax.hist(times[~fixations], bins=100, density=True, label='extinctions')
-    ax.set(xlim=(0, -4 * np.log(n0_3 / N_2) / np.log(1 + s_5)), xlabel='Fixation/extinction time', ylabel='Frequency, $p$')
+    ax.set(xlim=(0, -4 * np.log(fixation_initial_count / fixation_pop_size) / np.log(1 + fixation_selection)), xlabel='Fixation/extinction time', ylabel='Frequency, $p$')
     ax.legend()
     sns.despine()
     plt.gcf()
@@ -694,11 +692,14 @@ def _(fix_time, np):
     def mean_std_fix_time(fixations, times):
         fix_times = times[fixations]
         return (fix_times.mean(), fix_times.std(ddof=1))
-    n0_4 = 1
-    Ns_3 = np.logspace(1, 8, 50, dtype=int)
-    s_6 = 0.01
-    fix_times = np.array([mean_std_fix_time(*fix_time(n0_4, N, s_6, 10000)) for N in Ns_3])
-    return Ns_3, fix_times, n0_4, s_6
+    fixation_time_initial_count = 1
+    fixation_time_population_sizes = np.logspace(1, 8, 50, dtype=int)
+    fixation_time_selection = 0.01
+    fixation_time_stats = np.array([
+        mean_std_fix_time(*fix_time(fixation_time_initial_count, N, fixation_time_selection, 10000))
+        for N in fixation_time_population_sizes
+    ])
+    return fixation_time_initial_count, fixation_time_population_sizes, fixation_time_selection, fixation_time_stats
 
 
 @app.cell(hide_code=True)
@@ -706,7 +707,7 @@ def _(mo):
     mo.md(r"""
     The deterministic approximation is (see previous lecture)
 
-       $$ t = -2 \frac{log(p_0)}{log{(1+s)}} $$
+    $$ t = -2 \frac{log(p_0)}{log{(1+s)}} $$
     """)
     return
 
@@ -720,9 +721,23 @@ def _(np):
 
 
 @app.cell
-def _(Ns_3, T_haldane, fix_times, n0_4, plt, s_6, sns):
-    plt.errorbar(Ns_3, fix_times[:, 0], yerr=fix_times[:, 1], capsize=2, capthick=1, lw=0, label='simulations', ecolor='k', elinewidth=1)
-    plt.plot(Ns_3, T_haldane(n0_4, Ns_3, s_6), label='deterministic approx.')
+def _(T_haldane, fixation_time_initial_count, fixation_time_population_sizes, fixation_time_selection, fixation_time_stats, plt, sns):
+    plt.errorbar(
+        fixation_time_population_sizes,
+        fixation_time_stats[:, 0],
+        yerr=fixation_time_stats[:, 1],
+        capsize=2,
+        capthick=1,
+        lw=0,
+        label='simulations',
+        ecolor='k',
+        elinewidth=1,
+    )
+    plt.plot(
+        fixation_time_population_sizes,
+        T_haldane(fixation_time_initial_count, fixation_time_population_sizes, fixation_time_selection),
+        label='deterministic approx.',
+    )
     plt.xscale('log')
     plt.xlabel('Population size, $N$')
     plt.ylabel('Fixation time')
@@ -749,19 +764,17 @@ def _(mo):
 
     Another approximation of the fixation time is based on a diffusion equation and is given in [Kimura and Ohta 1969](http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1212239) (eq. 17). It assumes a population size of $2N$ gametes and selection advantage of $s/2$ rather then $N$ and $s$, therefore I'm changing $s=2s$ and $N=N/2$. Also, it has the initial frequency as $x$, so we define $x=n_0/N$.
 
-       $$ I_1(x) = \frac{1 - e^{-2 n_0 s} - e^{-2Ns(1-x)} + e^{-2Ns}}{x(1-x)} $$
+    $$ I_1(x) = \frac{1 - e^{-2 n_0 s} - e^{-2Ns(1-x)} + e^{-2Ns}}{x(1-x)} $$
 
-       $$ I_2(x) = \frac{(e^{2Nsx} - 1) (1 - e^{-2Ns(1-x)})}{x(1-x)} $$
+    $$ I_2(x) = \frac{(e^{2Nsx} - 1) (1 - e^{-2Ns(1-x)})}{x(1-x)} $$
 
-       $$ J_1 = \frac{1}{s(1-e^{-2Ns})} \int_{x}^{1}{I_1(y) dy} $$
+    $$ J_1 = \frac{1}{s(1-e^{-2Ns})} \int_{x}^{1}{I_1(y) dy} $$
 
-       $$ J_2 = \frac{1}{s(1-e^{-2Ns})} \int_{0}^{x}{I_2(y) dy} $$
+    $$ J_2 = \frac{1}{s(1-e^{-2Ns})} \int_{0}^{x}{I_2(y) dy} $$
 
-       $$ u = \frac{1 - e^{-2Nsx}}{1 - e^{-2Ns}} $$
+    $$ u = \frac{1 - e^{-2Nsx}}{1 - e^{-2Ns}} $$
 
-       $$ T_{fix} = J1 + \frac{1-u}{u} J_2 $$
-
-
+    $$ T_{fix} = J1 + \frac{1-u}{u} J_2 $$
 
     For a modern derivation see Durrett's [Probability Models for DNA Sequence Evolution](https://services.math.duke.edu/~rtd/Gbook/Gbook.html), ch. 7 (free online).
 
@@ -820,10 +833,9 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # magic command not supported in marimo; please file an issue to add support
     # %timeit np.array([T_kimura(n0, N, s) for N in Ns])
     # %timeit T_kimura(n0, Ns, s)
-    Ns_4 = np.logspace(1, 6, 100)
+    _population_sizes = np.logspace(1, 6, 100)
     return
 
 
@@ -837,19 +849,29 @@ def _(mo):
 
 @app.cell
 def _(T_haldane, T_kimura, np):
-    n0_5 = 1
-    Ns_5 = np.logspace(1, 8, 50, dtype=int)
-    s_7 = 0.01
-    fix_time_kimura = T_kimura(n0_5, Ns_5, s_7)
-    fix_time_haldane = T_haldane(n0_5, Ns_5, s_7)
-    return Ns_5, fix_time_haldane, fix_time_kimura
+    comparison_initial_count = 1
+    comparison_population_sizes = np.logspace(1, 8, 50, dtype=int)
+    comparison_selection = 0.01
+    fix_time_kimura = T_kimura(comparison_initial_count, comparison_population_sizes, comparison_selection)
+    fix_time_haldane = T_haldane(comparison_initial_count, comparison_population_sizes, comparison_selection)
+    return comparison_population_sizes, fix_time_haldane, fix_time_kimura
 
 
 @app.cell
-def _(Ns_5, fix_time_haldane, fix_time_kimura, fix_times, plt, sns):
-    plt.errorbar(Ns_5, fix_times[:, 0], yerr=fix_times[:, 1], capsize=2, capthick=1, lw=0, label='simulation', ecolor='k', elinewidth=1)
-    plt.plot(Ns_5, fix_time_haldane, label='Haldane')
-    plt.plot(Ns_5, fix_time_kimura, label='Kimura')
+def _(comparison_population_sizes, fix_time_haldane, fix_time_kimura, fixation_time_stats, plt, sns):
+    plt.errorbar(
+        comparison_population_sizes,
+        fixation_time_stats[:, 0],
+        yerr=fixation_time_stats[:, 1],
+        capsize=2,
+        capthick=1,
+        lw=0,
+        label='simulation',
+        ecolor='k',
+        elinewidth=1,
+    )
+    plt.plot(comparison_population_sizes, fix_time_haldane, label='Haldane')
+    plt.plot(comparison_population_sizes, fix_time_kimura, label='Kimura')
     plt.xscale('log')
     plt.xlabel('Population time, $N$')
     plt.ylabel('Fixation time')
