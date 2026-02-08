@@ -169,22 +169,23 @@ Students’ agent access:
 
 Stage 2 conversion insights (from `population-growth`, `predator-prey`, `stability`)
 
-	1.	`import marimo as mo` rule:
-	•	Put `import marimo as mo` as the first line in the first existing imports cell.
-	•	Do not create a dedicated one-line cell just for `import marimo as mo`.
-	2.	Math markdown reliability:
-	•	Prefer single-line display equations: `$$ ... $$`.
-	•	Keep one blank line before and after each `$$ ... $$` line.
-	•	Avoid multiline display constructs (`\begin{aligned}`, `\\`, and `\[...\]`) when rendering reliability is critical.
-	3.	Matplotlib output in marimo app view:
-	•	Return/output a figure object from the plotting cell (`plt.gcf()` or `fig`).
-	•	Do not use `plt.show()` for notebook output (console-focused).
-	4.	Post-conversion cleanup:
-	•	Run `pixi run marimo check notebooks/<name>.py` after every converted notebook.
-	•	Expect auto-renamed variables from conversion when names collide; rename for readability when needed.
-	5.	UI migration pattern:
-	•	Replace `ipywidgets` with `mo.ui.*` controls and wire values directly into computation cells.
-	•	For ODE demos, expose solver method/tolerances and perturbation controls to preserve exploratory pedagogy.
+1. `import marimo as mo` rule:
+   • Put `import marimo as mo` as the first line in the first existing imports cell.
+   • Do not create a dedicated one-line cell just for `import marimo as mo`.
+2. Math markdown reliability:
+   • For single equations, use `$$ ... $$`.
+   • For multi-step derivations, use one display block with `\begin{aligned} ... \end{aligned}`.
+   • Do not split one derivation across multiple consecutive `$$ ... $$` lines.
+   • Keep one blank line before opening `$$` and after closing `$$`.
+3. Matplotlib output in marimo app view:
+   • Return/output a figure object from the plotting cell (`plt.gcf()` or `fig`).
+   • Do not use `plt.show()` for notebook output (console-focused).
+4. Post-conversion cleanup:
+   • Run `pixi run marimo check notebooks/<name>.py` after every converted notebook.
+   • Expect auto-renamed variables from conversion when names collide; rename for readability when needed.
+5. UI migration pattern:
+   • Replace `ipywidgets` with `mo.ui.*` controls and wire values directly into computation cells.
+   • For ODE demos, expose solver method/tolerances and perturbation controls to preserve exploratory pedagogy.
 
 ⸻
 
