@@ -18,6 +18,19 @@
 - Content slugs: lowercase with hyphens (`content/calendar/week-03/contents.lr`). Set `_model`/`_template` explicitly when adding new pages or events.
 - HTML/Jinja in `www/templates/`: 2-space indent; reuse macros and blocks instead of duplicating markup. CSS in `assets/static/style.css` also uses 2 spaces; lean on existing Bootstrap utilities first.
 
+## LaTeX In Marimo Markdown
+- In `mo.md(r"""...""")` cells, prefer display equations as single-line `$$ ... $$` blocks.
+- Keep one display equation per line.
+- Keep a blank line before and after every `$$ ... $$` line.
+- Keep inline math as `$...$`.
+- Avoid multiline display constructs (for example `\[ ... \]`, `\begin{aligned} ... \end{aligned}`, or explicit `\\` line breaks) when rendering is critical, because they may be shown as raw text in some marimo views.
+
+## Plot Rendering In Marimo
+- In cells that generate matplotlib figures, output a figure object for notebook rendering.
+- Use `plt.gcf()` for stateful/static plotting.
+- Use `fig` when a figure object already exists (for example after `fig, ax = plt.subplots(...)`).
+- Do not use `plt.show()` for notebook output (it targets the console area).
+
 ## Testing Guidelines
 - No automated unit suite. For notebooks, run all cells to completion (Kernel → Restart & Run All) and confirm figures render with current dependencies.
 - For site changes, run `lektor build` and spot-check in `lektor serve`: navigation, dated items, external links, and `/static/` assets on mobile and desktop widths.
