@@ -35,9 +35,10 @@ def _(mo):
     # SIR model
 
     A very common model in epidemiology is the compartmental SIR model, which stands for _Susceptible_, _Infectious_, and _Recovered_.
-    \begin{align}
+
+    $$
     \text{Susceptible} \rightarrow \text{Infectious} \rightarrow \text{Recovered}
-    \end{align}
+    $$
 
     A more quantitative description is:
 
@@ -60,13 +61,11 @@ def _(mo):
     # Continuous-time deterministic model
     The _deterministic_ equations, which describe the expected dynamics, are
 
-    $$ \frac{dS}{dt} = -\beta I S , $$
-
-    $$ \frac{dI}{dt} = \beta I S - \gamma I, $$
-
-    $$ \frac{dR}{dt} = \gamma I $$
-
-
+    $$
+     \frac{dS}{dt} = -\beta I S , \\
+     \frac{dI}{dt} = \beta I S - \gamma I, \\
+     \frac{dR}{dt} = \gamma I
+    $$
 
     We assume new $S$ individuals are not produced, that is, the population size $N=S+I+R$ is constant throughout the epidemic.
     This means there is an implicit assumption that the epidemic is shorter than the population generation time.
@@ -122,8 +121,6 @@ def _(mo):
 
     $$ S(t) = S_0 \cdot e^{- \frac{\beta}{\gamma} R(t)} $$
 
-
-
     Note that $R(t)$ is also a variable, so this is not a closed-form solution.
 
     A trivial solution occurs if $R(t)\equiv 0$ always, such that $S(t) \equiv S_0$ always--but this can only occur if $I(0) \equiv 0$, because otherwise an infected individual will recover and so $R(t)>0$ for some $t$.
@@ -164,7 +161,8 @@ def _(mo):
     1. $x=y$, that is, $S^*=1$, and the epidemic doesn't occur beyond the initial infectious individuals.
     1. If $x<-1$, that is, $\beta/\gamma>1$, then $y=W_0(xe^{x})$, that is,
 
-    $$ S^* = -\frac{\gamma}{\beta} W_0\left(-\frac{\beta}{\gamma} e^{-\frac{\beta}{\gamma}}\right) $$
+    $$ S^* = -\frac{\gamma}{\beta} W_0\left(-\frac{\beta}{\gamma} e^{-\frac{\beta}{\gamma}}\right)
+    $$
 
 
     1. If $-1<x<0$, that is, $0 < \beta/\gamma < 1$, then $y=W_1(xe^{x})$. However, $W_1(\cdot)<-1$, and therefore $-\frac{\gamma}{\beta} W_1\left(-\frac{\beta}{\gamma} e^{-\frac{\beta}{\gamma}}\right) > 1$, which is not an acceptable solution for $S^*$.
@@ -174,7 +172,6 @@ def _(mo):
     $$ R^* = 1-S^*, $$
 
     $$ S^* = -\frac{\gamma}{\beta} W\left(-S_0 \frac{\beta}{\gamma} e^{-\beta/\gamma}\right). $$
-
 
 
     **Note 1:** The _reproductive number_ of the epidemic is $R_0=\frac{\beta}{\gamma}$. Do not confuse this with $R(t=0)$.
@@ -189,18 +186,30 @@ def _(W, np):
     def Sstar(S0, β, γ):
         R0 = β/γ # reproductive number
         Sstar_ = -1/R0 * W(-S0 * R0 * np.exp(-R0))
-        assert np.allclose(Sstar_.imag, 0)
+        assert np.allclose(Sstar_.imag, 0), Sstar_.imag
         return Sstar_.real
 
     return (Sstar,)
 
 
 @app.cell
-def _(Sstar, np, plt, sns):
-    S0 = 1
-    γ = 0.1
-    β = np.logspace(-2, 0, 500)
-    plt.plot(β/γ, 1-Sstar(S0, β, γ))
+def _():
+    params = {
+        "β": 0.2,
+        "γ": 0.1,
+        "S0": 1-1/1000,
+        "I0": 1/1000,
+    }
+    return (params,)
+
+
+@app.cell
+def _(Sstar, np, params, plt, sns):
+    _S0 = params['S0']
+    _γ = params['γ']
+    _β = np.logspace(-2, 0, 500)
+
+    plt.plot(_β/_γ, 1-Sstar(S0=_S0, β=_β, γ=_γ))
     plt.axvline(1, ls='--', color='k')
     plt.xlabel(r'Reproductive number, $R_0 = \beta/\gamma$')
     plt.ylabel('Total number of infectious, $R^*$')
@@ -225,16 +234,18 @@ def _(mo):
 def _(blue, green, np, partial, red, solve_ivp):
     def gradient(t, SI, β, γ):
         S, I = SI
-        dSdt = -β * S * I 
+        N = S + I
+        dSdt = -β * S * I / N
         dIdt = β * S * I - γ * I
         return dSdt, dIdt
 
-    def numerical_solution(β, γ, I0, tmax=250, tsteps=1000):
+    def numerical_solution(β, γ, S0, I0, tmax=250, tsteps=1000):
+        N = S0 + I0
         gradient_ = partial(gradient, β=β, γ=γ)
         t = np.linspace(0, tmax, tsteps)
-        sol = solve_ivp(gradient_, t_span=(0, t.max()), y0=(1-I0, I0), t_eval=t)
+        sol = solve_ivp(gradient_, t_span=(0, t.max()), y0=(S0, I0), t_eval=t)
         S, I = sol.y
-        return t, S, I, 1-S-I
+        return t, S, I, N - S - I
 
     def plot_SIR(t, S, I, R, label='', ls='-', ax=None):
         ax.plot(t, S, lw=3, ls=ls, color=green, label='S ' + label)
@@ -258,37 +269,38 @@ def _(mo):
 
 
 @app.cell
-def _(Sstar, numerical_solution, plot_SIR, plt, sns):
-    _fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+def _(mo, params):
+    β_ = mo.ui.slider(
+        0.05, 1.0, 0.01, value=params["β"], show_value=True, label="β"
+    )
+    γ_ = mo.ui.slider(
+        0.01, 0.5, 0.01, value=params["γ"], show_value=True, label="γ"
+    )
+    I0_ = mo.ui.slider(
+        1/1000, 0.5, 0.01, value=params["I0"], show_value=True, label="I0",
+    )
+    controls = mo.hstack([β_, γ_, I0_], justify="start")
+    controls
+    return I0_, controls, β_, γ_
+
+
+@app.cell
+def _(I0_, Sstar, numerical_solution, params, plot_SIR, plt, sns, β_, γ_):
+    _fig, _ax = plt.subplots(1, 1, figsize=(7, 4))
     hline_kws = dict(ls='-', alpha=0.5, color='k')
-    I0 = 0.001
-    S0_1 = 1 - I0
-    ax = axes[0]
-    β_1, γ_1 = (0.5, 0.1)
-    t, S, I, R = numerical_solution(β_1, γ_1, I0)
-    plot_SIR(t, S, I, R, ax=ax)
-    ax.axhline(Sstar(S0_1, β_1, γ_1), **hline_kws)
-    ax.axhline(1 - Sstar(S0_1, β_1, γ_1), **hline_kws)
-    ax.set_title('β={}, γ={}'.format(β_1, γ_1))
-    ax = axes[1]
-    β_1, γ_1 = (0.2, 0.1)
-    t, S, I, R = numerical_solution(β_1, γ_1, I0)
-    plot_SIR(t, S, I, R, ls='--', ax=ax)
-    ax.axhline(Sstar(S0_1, β_1, γ_1), **hline_kws)
-    ax.axhline(1 - Sstar(S0_1, β_1, γ_1), **hline_kws)
-    ax.set_title('β={}, γ={}'.format(β_1, γ_1))
-    ax = axes[2]
-    β_1, γ_1 = (0.05, 0.1)
-    t, S, I, R = numerical_solution(β_1, γ_1, I0)
-    plot_SIR(t, S, I, R, ls='-.', ax=ax)
-    ax.axhline(Sstar(S0_1, β_1, γ_1), **hline_kws)
-    ax.axhline(1 - Sstar(S0_1, β_1, γ_1), **hline_kws)
-    ax.set_title('β={}, γ={}'.format(β_1, γ_1))
-    ax.legend()
+
+    t, s, i, r = numerical_solution(
+        β=β_.value, γ=γ_.value, I0=I0_.value, S0=params['S0'])
+    plot_SIR(t, s, i, r, ax=_ax)
+    _s_star = Sstar(S0=params['S0'], β=β_.value, γ=γ_.value)
+    _ax.axhline(_s_star, **hline_kws)
+    _ax.axhline(1 - _s_star, **hline_kws)
+    _ax.set_title(f'β={β_.value:.2f}, γ={γ_.value:.2f}, I0={I0_.value:.3f}')
+    _ax.legend()
     _fig.tight_layout()
     sns.despine()
     plt.gcf()
-    return β_1, γ_1
+    return
 
 
 @app.cell(hide_code=True)
@@ -325,14 +337,12 @@ def _(mo):
     The change in the distribution from time $t$ to time $t+dt$ can then be described by changes from $S$ to $S+1$, from $S-1$ to $S$, and similarly for $I$ and $R$.
 
     $$
-
     \begin{aligned}
     f_{t+dt}(S, I, R) =
         & f_t(S, I, R) \left(1 - \beta S I \,dt  - \gamma I \,dt \right)  + \\
         & f_t(S+1, I-1, R) \, \beta (S+1) (I-1) \,dt + \\
         & f_t(S, I+1, R-1) \, \gamma (I+1) \,dt
     \end{aligned}
-
     $$
     """)
     return
@@ -343,16 +353,12 @@ def _(mo):
     mo.md(r"""
     This can be rearranged to:
 
-    $$
-
     \begin{aligned}
     \frac{f_{t+dt}(S, I, R) - f_t(S, I, R)}{dt} =
          & f_t(S, I, R) \left(- \beta S I  - \gamma I \right)  + \\
          & f_t(S+1, I-1, R) \, \beta (S+1) (I-1) + \\
          & f_t(S, I+1, R-1) \, \gamma (I+1)
     \end{aligned}
-
-    $$
     """)
     return
 
@@ -366,19 +372,14 @@ def _(mo):
     \lim_{dt \to 0}{\frac{f_{t+dt}(S,I,R) - f_t(S,I,R)}{dt}} = \frac{d f_t(S,I,R)}{dt}
     $$
 
-
     This differential equation that describes the change in $f_t(S,I,R)$ over time is sometimes called the **master equation**:
 
-    $$
     \begin{aligned}
     \frac{d f_t(S,I,R)}{dt}
       &= f_t(S, I, R) \left(- \beta S I  - \gamma I \right) \\
       &\quad + f_t(S+1, I-1, R) \, \beta (S+1) (I-1) \\
       &\quad + f_t(S, I+1, R-1) \, \gamma (I+1)
     \end{aligned}
-    $$
-
-
 
     Note that in this case we assume $S$, $I$, and $R$ are **positive integers**, $t$ is a non-negative real number, and $f_t(S,I,R)$ is a probability so $0 \le f_t(S,I,R) \le 1$ and $\sum_{S,I,R \ge 0}{f_t(S,I,R)} = 1$.
 
@@ -429,21 +430,21 @@ def _(mo):
 
 @app.cell
 def _(np, plt, sns):
-    n = 100000
-    x1 = np.random.exponential(1, size=n)
-    x2 = np.random.exponential(2, size=n)
-    x10 = np.random.exponential(10, size=n)
-    _fig, ax_1 = plt.subplots(1, 1, figsize=(12, 4))
-    kwargs = dict(kde=False, alpha=0.5)
-    sns.histplot(x1, **kwargs, label='Exp(1)', ax=ax_1)
-    sns.histplot(x2, **kwargs, label='Exp(2)', ax=ax_1)
-    sns.histplot(x10, **kwargs, label='Exp(10)', ax=ax_1)
-    ax_1.set_xlim(-5, 40)
-    print(x1.mean(), 1)
-    print(x2.mean(), 2)
-    print(x10.mean(), 10)
+    sample_size = 100000
+    wait_exp1 = np.random.exponential(1, size=sample_size)
+    wait_exp2 = np.random.exponential(2, size=sample_size)
+    wait_exp10 = np.random.exponential(10, size=sample_size)
+    _fig, _ax = plt.subplots(1, 1, figsize=(12, 4))
+    hist_kws = dict(kde=False, alpha=0.5)
+    sns.histplot(wait_exp1, **hist_kws, label='Exp(1)', ax=_ax)
+    sns.histplot(wait_exp2, **hist_kws, label='Exp(2)', ax=_ax)
+    sns.histplot(wait_exp10, **hist_kws, label='Exp(10)', ax=_ax)
+    _ax.set_xlim(-5, 40)
+    print(wait_exp1.mean(), 1)
+    print(wait_exp2.mean(), 2)
+    print(wait_exp10.mean(), 10)
     plt.gcf()
-    return ax_1, kwargs, x1, x10, x2
+    return hist_kws, wait_exp1, wait_exp10, wait_exp2
 
 
 @app.cell(hide_code=True)
@@ -456,12 +457,11 @@ def _(mo):
 
 
 @app.cell
-def _(ax_1, kwargs, np, sns, x1, x10, x2):
-    x_min = np.minimum(x1, x2)
-    x_min = np.minimum(x_min, x10)
-    sns.histplot(x_min, **kwargs)
-    ax_1.set_xlim(-5, 40)
-    print(x_min.mean(), 1 / (1 + 1 / 2 + 1 / 10))
+def _(hist_kws, np, sns, wait_exp1, wait_exp10, wait_exp2):
+    wait_min = np.minimum(wait_exp1, wait_exp2)
+    wait_min = np.minimum(wait_min, wait_exp10)
+    print(wait_min.mean(), 1 / (1 + 1 / 2 + 1 / 10))
+    sns.histplot(wait_min, **hist_kws)
     return
 
 
@@ -547,10 +547,10 @@ def _(np, numba):
 
 
 @app.cell
-def _(draw_event, get_rates, β_1, γ_1):
-    rates = get_rates(100, 1, 0, β_1, γ_1)
-    rates = rates / rates.sum()
-    draw_event(rates)
+def _(draw_event, get_rates):
+    _rates = get_rates(S=100, I=1, R=0, β=0.1, γ=0.05)
+    _rates = _rates / _rates.sum()
+    draw_event(_rates)
     return
 
 
@@ -601,15 +601,14 @@ def _(mo):
 
 
 @app.cell
-def _(gillespie_step, np, numba, updates):
-    @numba.njit
-    def gillespie_ssa(β, γ, S0, I0, t_steps=1000, t0=0, tmax=250):
+def _(gillespie_step, np, updates):
+    # @numba.njit
+    def gillespie_ssa(β, γ, S0, I0, N=1000, t_steps=1000, t0=0, tmax=250):
         times = np.linspace(t0, tmax, t_steps) # recording times: time points in which to record the state
-        states = np.empty(shape=(updates.shape[1], t_steps), dtype=np.int32) # recorded states: type x time
-        N = S0 + I0
+        states = np.empty(shape=(updates.shape[1], t_steps), dtype=np.int32) # recorded states: type x time        
         # init
         t = t0
-        S, I, R = S0, I0, 0
+        S, I, R = int(S0*N), int(I0*N), 0
         ΔS, ΔI, ΔR = 0, 0, 0
         # loop over recording times
         for i, next_t in enumerate(times):
@@ -636,19 +635,37 @@ def _(mo):
 
 
 @app.cell
-def _(gillespie_ssa, numerical_solution, plot_SIR, plt, sns):
-    β_2, γ_2 = (0.2, 0.1)
-    S0_2, I0_1 = (1000, 10)
-    N = S0_2 + I0_1
-    T, S_1, I_1, R_1 = gillespie_ssa(β_2, γ_2, S0=S0_2, I0=I0_1)
-    t_1, s, i, r = numerical_solution(β_2, γ_2, I0=I0_1 / (S0_2 + I0_1))
-    _fig, ax_2 = plt.subplots()
-    plot_SIR(T, S_1, I_1, R_1, ax=ax_2)
-    ax_2.legend(bbox_to_anchor=(1, 0.7))
-    plot_SIR(t_1, s * N, i * N, r * N, ls='--', ax=ax_2)
+def _(controls):
+    controls
+    return
+
+
+@app.cell
+def _(
+    I0_,
+    gillespie_ssa,
+    numerical_solution,
+    params,
+    plot_SIR,
+    plt,
+    sns,
+    β_,
+    γ_,
+):
+    _fig, _ax = plt.subplots()
+
+    _stoch = gillespie_ssa(
+        S0=params['S0'], I0=I0_.value, β=β_.value, γ=γ_.value)
+    plot_SIR(*_stoch, ax=_ax)
+    _ax.legend(bbox_to_anchor=(1, 0.7))
+
+    _det = numerical_solution(
+        S0=params['S0'], I0=I0_.value, β=β_.value, γ=γ_.value)
+    plot_SIR(*_det, ls='--', ax=_ax,)
+
     sns.despine()
     plt.gcf()
-    return I0_1, N, S0_2, β_2, γ_2
+    return
 
 
 @app.cell(hide_code=True)
@@ -663,18 +680,15 @@ def _(mo):
 
 
 @app.cell
-def _(I0_1, S0_2, gillespie_ssa, np, β_2, γ_2):
-    # magic command not supported in marimo; please file an issue to add support
-    # %%time
+def _(I0_, gillespie_ssa, np, numerical_solution, params, β_, γ_):
     reps = 1000
-    TSIR = np.array([gillespie_ssa(β_2, γ_2, S0=S0_2, I0=I0_1) for _ in range(reps)])
-    return (TSIR,)
-
-
-@app.cell
-def _(I0_1, S0_2, numerical_solution, β_2, γ_2):
-    t_2, s_1, i_1, r_1 = numerical_solution(β_2, γ_2, I0=I0_1 / (S0_2 + I0_1))
-    return i_1, r_1, s_1, t_2
+    sir_trajectories = np.array([
+        gillespie_ssa(S0=params['S0'], I0=I0_.value, β=β_.value, γ=γ_.value)
+        for _ in range(reps)
+    ])
+    t_det, s_det, i_det, r_det = numerical_solution(
+        S0=params['S0'], I0=I0_.value, β=β_.value, γ=γ_.value)
+    return i_det, r_det, s_det, sir_trajectories, t_det
 
 
 @app.cell(hide_code=True)
@@ -688,27 +702,27 @@ def _(mo):
 
 
 @app.cell
-def _(N, TSIR, i_1, plot_SIR, plt, r_1, s_1, sns, t_2):
-    _fig, ax_3 = plt.subplots()
-    T_1 = TSIR[0, 0, :]
-    S_2 = TSIR[:, 1, :]
-    I_2 = TSIR[:, 2, :]
-    R_2 = TSIR[:, 3, :]
-    plot_SIR(T_1, S_2.T, I_2.T, R_2.T, ax=ax_3)
-    for line in ax_3.get_lines():
+def _(i_det, plot_SIR, plt, r_det, s_det, sir_trajectories, sns, t_det):
+    _fig, _ax = plt.subplots()
+    t_stoch = sir_trajectories[0, 0, :]
+    s_stoch = sir_trajectories[:, 1, :]
+    i_stoch = sir_trajectories[:, 2, :]
+    r_stoch = sir_trajectories[:, 3, :]
+    plot_SIR(t_stoch, s_stoch.T, i_stoch.T, r_stoch.T, ax=_ax)
+    for line in _ax.get_lines():
         line.set_alpha(0.01)
-    plot_SIR(T_1, S_2.mean(axis=0), I_2.mean(axis=0), R_2.mean(axis=0), ax=ax_3)
-    for line in ax_3.get_lines()[-3:]:
+    plot_SIR(t_stoch, s_stoch.mean(axis=0), i_stoch.mean(axis=0), r_stoch.mean(axis=0), ax=_ax)
+    for line in _ax.get_lines()[-3:]:
         line.set_color('k')
-    plot_SIR(t_2, s_1 * N, i_1 * N, r_1 * N, ax=ax_3)
-    for line in ax_3.get_lines()[-3:]:
+    plot_SIR(t_det, s_det, i_det, r_det, ax=_ax)
+    for line in _ax.get_lines()[-3:]:
         line.set_ls('--')
         line.set_color('k')
         line.set_alpha(0.5)
-    ax_3.legend().set_visible(False)
+    _ax.legend().set_visible(False)
     sns.despine()
     plt.gcf()
-    return I_2, R_2, S_2, T_1
+    return i_stoch, r_stoch, s_stoch, t_stoch
 
 
 @app.cell(hide_code=True)
@@ -722,16 +736,28 @@ def _(mo):
 
 
 @app.cell
-def _(I_2, R_2, S_2, T_1, blue, green, np, plot_SIR, plt, red, sns, t_2):
-    _fig, ax_4 = plt.subplots()
-    plot_SIR(T_1, S_2.mean(axis=0), I_2.mean(axis=0), R_2.mean(axis=0), ax=ax_4)
-    S_low, S_high = (np.quantile(S_2, 0.025, axis=0), np.quantile(S_2, 0.975, axis=0))
-    I_low, I_high = (np.quantile(I_2, 0.025, axis=0), np.quantile(I_2, 0.975, axis=0))
-    R_low, R_high = (np.quantile(R_2, 0.025, axis=0), np.quantile(R_2, 0.975, axis=0))
-    ax_4.fill_between(t_2, S_low, S_high, alpha=0.5, color=green)
-    ax_4.fill_between(t_2, I_low, I_high, alpha=0.5, color=red)
-    ax_4.fill_between(t_2, R_low, R_high, alpha=0.5, color=blue)
-    ax_4.legend(bbox_to_anchor=(1, 0.75))
+def _(
+    blue,
+    green,
+    i_stoch,
+    np,
+    plot_SIR,
+    plt,
+    r_stoch,
+    red,
+    s_stoch,
+    sns,
+    t_stoch,
+):
+    _fig, _ax = plt.subplots()
+    plot_SIR(t_stoch, s_stoch.mean(axis=0), i_stoch.mean(axis=0), r_stoch.mean(axis=0), ax=_ax)
+    s_low, s_high = (np.quantile(s_stoch, 0.025, axis=0), np.quantile(s_stoch, 0.975, axis=0))
+    i_low, i_high = (np.quantile(i_stoch, 0.025, axis=0), np.quantile(i_stoch, 0.975, axis=0))
+    r_low, r_high = (np.quantile(r_stoch, 0.025, axis=0), np.quantile(r_stoch, 0.975, axis=0))
+    _ax.fill_between(t_stoch, s_low, s_high, alpha=0.5, color=green)
+    _ax.fill_between(t_stoch, i_low, i_high, alpha=0.5, color=red)
+    _ax.fill_between(t_stoch, r_low, r_high, alpha=0.5, color=blue)
+    _ax.legend(bbox_to_anchor=(1, 0.75))
     sns.despine()
     plt.gcf()
     return
