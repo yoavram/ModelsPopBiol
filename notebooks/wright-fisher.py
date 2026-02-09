@@ -351,7 +351,7 @@ def _(N_slider, n0_slider, plt, s_slider, simulation_np):
 
 @app.cell
 def _(N_slider, n0_slider, s_slider, simulation_np, simulation_py, time):
-    _reps = 10000
+    _reps = 100
     _start = time.perf_counter()
     [simulation_py(n0_slider.value, N_slider.value, s_slider.value) for _ in range(_reps)]
     _end = time.perf_counter()
@@ -527,17 +527,17 @@ def _(mo):
 @app.cell
 def _(fix_prob, np):
     Ns = np.logspace(1, 6, 100, dtype=int)
-    kimura_selection = 0.001
-    kimura_initial_count = 1
+    kimura_s = 0.001
+    kimura_n0 = 1
     _reps = 1000
-    pfix_simulated = np.array([fix_prob(kimura_initial_count, N, kimura_selection, _reps) for N in Ns])
-    return Ns, kimura_initial_count, kimura_selection, pfix_simulated
+    pfix_simulated = np.array([fix_prob(kimura_n0, N, kimura_s, _reps) for N in Ns])
+    return Ns, kimura_n0, kimura_s, pfix_simulated
 
 
 @app.cell
-def _(Ns, kimura_selection, pfix_simulated, plt):
+def _(Ns, kimura_s, pfix_simulated, plt):
     plt.plot(Ns, pfix_simulated, '.', label='simulations')
-    plt.axhline(2 * kimura_selection, ls='--', color='k', label='$2s$')
+    plt.axhline(2 * kimura_s, ls='--', color='k', label='$2s$')
     plt.xlabel('Population size, $N$')
     plt.xscale('log')
     plt.ylabel('Fixation probability, $p_{fix}$')
@@ -584,17 +584,10 @@ def _(mo):
 
 
 @app.cell
-def _(
-    Ns,
-    fix_kimura,
-    kimura_initial_count,
-    kimura_selection,
-    pfix_simulated,
-    plt,
-):
+def _(Ns, fix_kimura, kimura_n0, kimura_s, pfix_simulated, plt):
     plt.plot(Ns, pfix_simulated, '.', alpha=0.85, label='simulation')
-    plt.plot(Ns, fix_kimura(kimura_initial_count, Ns, kimura_selection), '-', label='Kimura')
-    plt.axhline(2 * kimura_selection / (1 + kimura_selection), ls='--', color='k', label='$2s$')
+    plt.plot(Ns, fix_kimura(kimura_n0, Ns, kimura_s), '-', label='Kimura')
+    plt.axhline(2 * kimura_s / (1 + kimura_s), ls='--', color='k', label='$2s$')
     plt.xlabel('N')
     plt.xscale('log')
     plt.ylabel('$p_{fix}$')
@@ -614,11 +607,19 @@ def _(mo):
 
 
 @app.cell
-def _(np):
-    _population_sizes = np.logspace(1, 6, 5000, dtype=np.int64)
-    # %timeit [fix_kimura(kimura_initial_count, N, kimura_selection) for N in _population_sizes]
-    # %timeit fix_kimura(kimura_initial_count, _population_sizes, kimura_selection)
-    return
+def _(fix_kimura, kimura_n0, kimura_s, np, time):
+    N_ = np.logspace(1, 6, 100000, dtype=np.int64)
+
+    _start = time.perf_counter()
+    [fix_kimura(kimura_n0, N, kimura_s) for N in N_]
+    _end = time.perf_counter()
+    print(f"List comprehension: {_end - _start:.6f} seconds")
+
+    _start = time.perf_counter()
+    fix_kimura(kimura_n0, N_, kimura_s)
+    _end = time.perf_counter()
+    print(f"NumPy: {_end - _start:.6f} seconds")
+    return (N_,)
 
 
 @app.cell(hide_code=True)
@@ -632,26 +633,25 @@ def _(mo):
 
 
 @app.cell
-def _(fix_kimura, kimura_initial_count, kimura_selection, wf_pop_size):
+def _(N_, fix_kimura, kimura_n0, kimura_s):
     import numba
     fix_kimura_nm = numba.jit(fix_kimura)
-    fix_kimura_nm(kimura_initial_count, wf_pop_size, kimura_selection)  # burn-in for the jit to work
-    return
+    fix_kimura_nm(kimura_n0, N_, kimura_s)  # burn-in for the jit to work
+    return (fix_kimura_nm,)
 
 
 @app.cell
-def _(np):
-    # %timeit fix_kimura(kimura_initial_count, Ns, kimura_selection)
-    # %timeit fix_kimura_nm(kimura_initial_count, Ns, kimura_selection)
-    _population_sizes = np.logspace(1, 6, 100, dtype=float)
-    return
+def _(N_, fix_kimura, fix_kimura_nm, kimura_n0, kimura_s, time):
+    _start = time.perf_counter()
+    fix_kimura(kimura_n0, N_, kimura_s)
+    _stop = time.perf_counter()
+    print(f"NumPy: {_stop-_start:.6f}s")
 
+    _start = time.perf_counter()
+    fix_kimura_nm(kimura_n0, N_, kimura_s)
+    _stop = time.perf_counter()
+    print(f"Numba: {_stop-_start:.6f}s")
 
-@app.cell
-def _(np):
-    # %timeit fix_kimura(kimura_initial_count, Ns, kimura_selection)
-    # %timeit fix_kimura_nm(kimura_initial_count, Ns, kimura_selection)
-    _population_sizes = np.logspace(1, 6, 10000, dtype=float)
     return
 
 
@@ -687,17 +687,8 @@ def _(np):
 
 @app.cell
 def _(fix_time):
-    fixation_initial_count = 10
-    fixation_pop_size = 1000
-    fixation_selection = 0.01
-    fixations, times = fix_time(fixation_initial_count, fixation_pop_size, fixation_selection, 100000)
-    return (
-        fixation_initial_count,
-        fixation_pop_size,
-        fixation_selection,
-        fixations,
-        times,
-    )
+    fixations, times = fix_time(10, 1000, 0.01, 100000)
+    return fixations, times
 
 
 @app.cell(hide_code=True)
@@ -709,21 +700,12 @@ def _(mo):
 
 
 @app.cell
-def _(
-    fixation_initial_count,
-    fixation_pop_size,
-    fixation_selection,
-    fixations,
-    np,
-    plt,
-    sns,
-    times,
-):
-    _fig, ax = plt.subplots()
-    ax.hist(times[fixations], bins=100, density=True, label='fixations')
-    ax.hist(times[~fixations], bins=100, density=True, label='extinctions')
-    ax.set(xlim=(0, -4 * np.log(fixation_initial_count / fixation_pop_size) / np.log(1 + fixation_selection)), xlabel='Fixation/extinction time', ylabel='Frequency, $p$')
-    ax.legend()
+def _(fixations, np, plt, sns, times):
+    _fig, _ax = plt.subplots()
+    _ax.hist(times[fixations], bins=100, density=True, label='fixations')
+    _ax.hist(times[~fixations], bins=100, density=True, label='extinctions')
+    _ax.set(xlim=(0, -4 * np.log(10 / 1000) / np.log(1 + 0.01)), xlabel='Fixation/extinction time', ylabel='Frequency, $p$')
+    _ax.legend()
     sns.despine()
     plt.gcf()
     return
@@ -744,19 +726,14 @@ def _(fix_time, np):
     def mean_std_fix_time(fixations, times):
         fix_times = times[fixations]
         return (fix_times.mean(), fix_times.std(ddof=1))
-    fixation_time_initial_count = 1
-    fixation_time_population_sizes = np.logspace(1, 8, 50, dtype=int)
-    fixation_time_selection = 0.01
+
+    N__ = np.logspace(1, 8, 50, dtype=int)
+
     fixation_time_stats = np.array([
-        mean_std_fix_time(*fix_time(fixation_time_initial_count, N, fixation_time_selection, 10000))
-        for N in fixation_time_population_sizes
+        mean_std_fix_time(*fix_time(1, N, 0.01, 10000))
+        for N in N__
     ])
-    return (
-        fixation_time_initial_count,
-        fixation_time_population_sizes,
-        fixation_time_selection,
-        fixation_time_stats,
-    )
+    return N__, fixation_time_stats
 
 
 @app.cell(hide_code=True)
@@ -778,17 +755,9 @@ def _(np):
 
 
 @app.cell
-def _(
-    T_haldane,
-    fixation_time_initial_count,
-    fixation_time_population_sizes,
-    fixation_time_selection,
-    fixation_time_stats,
-    plt,
-    sns,
-):
+def _(N__, T_haldane, fixation_time_stats, plt, sns):
     plt.errorbar(
-        fixation_time_population_sizes,
+        N__,
         fixation_time_stats[:, 0],
         yerr=fixation_time_stats[:, 1],
         capsize=2,
@@ -799,8 +768,8 @@ def _(
         elinewidth=1,
     )
     plt.plot(
-        fixation_time_population_sizes,
-        T_haldane(fixation_time_initial_count, fixation_time_population_sizes, fixation_time_selection),
+        N__,
+        T_haldane(1, N__ , 0.01),
         label='deterministic approx.',
     )
     plt.xscale('log')
@@ -891,48 +860,22 @@ def _(integral, np):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Behold the power of `np.vectorize`.
-    """)
-    return
-
-
-@app.cell
-def _(np):
-    # %timeit np.array([T_kimura(n0, N, s) for N in Ns])
-    # %timeit T_kimura(n0, Ns, s)
-    _population_sizes = np.logspace(1, 6, 100)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     Let's compare the simulation results with the two approximations:
     """)
     return
 
 
 @app.cell
-def _(T_haldane, T_kimura, np):
-    comparison_initial_count = 1
-    comparison_population_sizes = np.logspace(1, 8, 50, dtype=int)
-    comparison_selection = 0.01
-    fix_time_kimura = T_kimura(comparison_initial_count, comparison_population_sizes, comparison_selection)
-    fix_time_haldane = T_haldane(comparison_initial_count, comparison_population_sizes, comparison_selection)
-    return comparison_population_sizes, fix_time_haldane, fix_time_kimura
+def _(N__, T_haldane, T_kimura):
+    fix_time_kimura = T_kimura(1, N__, 0.01)
+    fix_time_haldane = T_haldane(1, N__, 0.01)
+    return fix_time_haldane, fix_time_kimura
 
 
 @app.cell
-def _(
-    comparison_population_sizes,
-    fix_time_haldane,
-    fix_time_kimura,
-    fixation_time_stats,
-    plt,
-    sns,
-):
+def _(N__, fix_time_haldane, fix_time_kimura, fixation_time_stats, plt, sns):
     plt.errorbar(
-        comparison_population_sizes,
+        N__,
         fixation_time_stats[:, 0],
         yerr=fixation_time_stats[:, 1],
         capsize=2,
@@ -942,8 +885,8 @@ def _(
         ecolor='k',
         elinewidth=1,
     )
-    plt.plot(comparison_population_sizes, fix_time_haldane, label='Haldane')
-    plt.plot(comparison_population_sizes, fix_time_kimura, label='Kimura')
+    plt.plot(N__, fix_time_haldane, label='Haldane')
+    plt.plot(N__, fix_time_kimura, label='Kimura')
     plt.xscale('log')
     plt.xlabel('Population time, $N$')
     plt.ylabel('Fixation time')
