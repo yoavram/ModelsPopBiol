@@ -187,6 +187,52 @@ Stage 2 conversion insights (from `population-growth`, `predator-prey`, `stabili
    • Replace `ipywidgets` with `mo.ui.*` controls and wire values directly into computation cells.
    • For ODE demos, expose solver method/tolerances and perturbation controls to preserve exploratory pedagogy.
 
+Stage 3 conversion insights (from `population-genetics`, `wright-fisher`, `gillespie`)
+
+1. Display-math formatting in marimo markdown:
+   • Do not indent `$$` lines inside `mo.md(r"""...""")`; leading spaces can make equations render as plain text/code.
+   • Keep a blank line before opening `$$` and after closing `$$`.
+   • For multi-line derivations, prefer one `$$ ... $$` block with `\begin{aligned} ... \end{aligned}` instead of chaining many separate equation blocks.
+2. Plot rendering contract:
+   • In notebook/app output cells, end with `plt.gcf()` (stateful matplotlib) or `fig` (object-oriented matplotlib).
+   • Avoid `plt.show()`/`fig.show()` for notebook output; those are console-oriented.
+3. Jupyter-specific APIs:
+   • Replace `IPython.display.HTML` embeds with `mo.Html(...)` (for example, iframe-based embeds).
+4. Cross-cell naming discipline:
+   • Conversion/refactor can leave mismatched names across dependent cells (`s_` vs `selection_grid`-style issues).
+   • After renaming, verify dependency signatures and returned variable names together, not cell-by-cell.
+5. Validation workflow:
+   • Run `pixi run --locked marimo check notebooks/<file>.py` after each converted notebook.
+   • If marimo is already open, rerun affected cells (or reload the notebook) before trusting runtime errors, since open sessions can show stale pre-edit exceptions.
+
+Stage 4 conversion insights (remaining notebooks batch)
+
+1. Avoid notebook filenames that shadow Python packages:
+   • `notebooks/numpy.py` and `notebooks/matplotlib.py` trigger marimo self-import ambiguity in other notebooks.
+   • Use non-shadowing names (for example `notebooks/numpy-basics.py`, `notebooks/matplotlib-basics.py`).
+2. Jupyter help syntax does not convert as executable Python:
+   • `np.arange?` and wildcard help like `np.concat*?` become unparsable marimo cells.
+   • Replace with valid alternatives (`help(np.arange)`, `np.lookfor("concat")`, or markdown guidance).
+3. Post-conversion dependency graph fixes:
+   • Conversion can introduce cross-cell cycles if preview/plot cells reuse names later produced by inference cells.
+   • Keep “guess” outputs local (or rename them) and reserve exported names for the final inferred values.
+
+Current status and conventions (agreed)
+
+1. Current review status:
+   • Lectures reviewed through `gillespie` (inclusive).
+2. Replacing `%timeit`:
+   • Replace notebook `%timeit` snippets with explicit timing blocks:
+   • `_start = time.perf_counter(); OPERATION; _stop = time.perf_counter(); print("XXX: ...")`.
+3. Controllers for exploration:
+   • Use marimo controllers (`mo.ui.*`) for parameters that students should explore interactively.
+4. Local naming discipline:
+   • Use local variable names (prefixed `_`) for parameters repeatedly redefined across different cells.
+   • Keep exported/global names only for values intentionally shared across cells.
+5. Display equation formatting:
+   • Do not put leading spaces before `$$`.
+   • Keep an empty line before and after each display-equation line.
+
 ⸻
 
 Questions / information needed (only if blocked)
