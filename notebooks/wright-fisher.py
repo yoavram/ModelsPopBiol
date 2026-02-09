@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.19.9"
 app = marimo.App()
 
 
@@ -19,8 +19,8 @@ def _(mo):
 def _():
     import marimo as mo
     import random
+    import time
 
-    # '%matplotlib inline' command supported automatically in marimo
     import matplotlib.pyplot as plt
     import numpy as np
     import scipy.stats
@@ -28,7 +28,7 @@ def _():
     sympy.init_printing()
     import seaborn as sns
     sns.set_context('talk')
-    return mo, np, plt, random, sns, sympy
+    return mo, np, plt, random, sns, sympy, time
 
 
 @app.cell(hide_code=True)
@@ -130,18 +130,18 @@ def _(mo):
 
 @app.cell
 def _(np, plt, sol):
-    selection_grid = np.logspace(-5, -1)
-    pfix = np.array([1 - sol.evalf(subs=dict(s=_s)) for _s in selection_grid])
-    plt.plot(selection_grid, pfix)
+    s_range = np.logspace(-5, -1)
+    pfix = np.array([1 - sol.evalf(subs=dict(s=_s)) for _s in s_range])
+    plt.plot(s_range, pfix)
     plt.xlabel('Selection cofficient, $s$')
     plt.ylabel('Fixation probability, $p_{fix}$')
     plt.gcf()
-    return pfix, selection_grid
+    return pfix, s_range
 
 
 @app.cell
-def _(pfix, plt, selection_grid):
-    plt.plot(selection_grid, pfix / selection_grid)
+def _(pfix, plt, s_range):
+    plt.plot(s_range, pfix / s_range)
     plt.xlabel('Selection coefficient, $s$')
     plt.ylabel('$p_{fix}/s$')
     plt.gcf()
@@ -172,9 +172,7 @@ def _(mo):
     $$
     \begin{aligned}
     p_{fix} - (1+s)p_{fix} + \frac{1}{2}\big((1+s)p_{fix}\big)^2 &= 0 \Rightarrow \\
-    p_{fix} - p_{fix} - s p_{fix} + \frac{1}{2}(1+s)^2 p_{fix}^2 &= 0 \Rightarrow \\
-    - s p_{fix} + \frac{1}{2}(1+s)^2 p_{fix}^2 &= 0 \Rightarrow \\
-    - s + \frac{1}{2}(1+s)^2 p_{fix} &= 0 \Rightarrow \\
+    p_{fix} - p_{fix} - s p_{fix} + \frac{1}{2}(1+s)^2 p_{fix}^2 &= 0 \Rightarrow \\ - s p_{fix} + \frac{1}{2}(1+s)^2 p_{fix}^2 &= 0 \Rightarrow \\ - s + \frac{1}{2}(1+s)^2 p_{fix} &= 0 \Rightarrow \\
     p_{fix} &= \frac{2s}{(1+s)^2} \Rightarrow \\
     p_{fix} &\approx 2s
     \end{aligned}
@@ -188,10 +186,10 @@ def _(mo):
 
 
 @app.cell
-def _(pfix, plt, selection_grid):
-    plt.plot(selection_grid, pfix, label='Lambert W')
-    plt.plot(selection_grid, 2 * selection_grid / (1 + selection_grid) ** 2, label='$2s/(1+s)^2$')
-    plt.plot(selection_grid, 2 * selection_grid, label='$2s$')
+def _(pfix, plt, s_range):
+    plt.plot(s_range, pfix, label='Lambert W')
+    plt.plot(s_range, 2 * s_range / (1 + s_range) ** 2, label='$2s/(1+s)^2$')
+    plt.plot(s_range, 2 * s_range, label='$2s$')
     plt.xlabel('Selection coefficient, $s$')
     plt.ylabel('Fixation probability, $p_{fix}$')
     plt.legend()
@@ -275,7 +273,16 @@ def _(mo):
 
 
 @app.cell
-def _(plt, random):
+def _(mo, np):
+    n0_slider = mo.ui.slider(steps=np.linspace(1, 1000, dtype=int), show_value=True, label="n0")
+    N_slider = mo.ui.slider(steps=np.logspace(2, 6, dtype=int), show_value=True, label='N')
+    s_slider = mo.ui.slider(steps=np.logspace(-3, -1), show_value=True, label="s")
+    controls = mo.hstack([n0_slider, N_slider, s_slider], justify="start")
+    return N_slider, controls, n0_slider, s_slider
+
+
+@app.cell
+def _(controls, random):
     def simulation_py(n0, N, s):
         n = [n0]
         while 0 < n[-1] < N:
@@ -283,17 +290,21 @@ def _(plt, random):
             sample = (1 for _ in range(N) if random.random() < p)
             n.append(sum(sample))  # generator expression
         return n
-    n0 = 200
-    N = 1000
-    _selection = 0.001
-    _trajectory = simulation_py(n0, N, _selection)
+
+    controls
+    return (simulation_py,)
+
+
+@app.cell
+def _(N_slider, n0_slider, plt, s_slider, simulation_py):
+    _trajectory = simulation_py(n0_slider.value, N_slider.value, s_slider.value)
     plt.plot(_trajectory)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
-    plt.ylim(0, N)
+    plt.ylim(0, N_slider.value)
     plt.xlim(0, len(_trajectory))
     plt.gcf()
-    return (simulation_py,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -309,7 +320,7 @@ def _(mo):
 
 
 @app.cell
-def _(np, plt):
+def _(controls, np):
     def simulation_np(n0, N, s, buflen=1000):
         n = np.empty(buflen)
         n[0] = n0
@@ -321,17 +332,35 @@ def _(np, plt):
                 n = np.append(n, np.empty(buflen))
             n[t] = np.random.binomial(N, p)
         return n[:t + 1].copy()
-    wf_initial_count = 200
-    wf_pop_size = 1000
-    wf_selection = 0.001
-    _trajectory = simulation_np(wf_initial_count, wf_pop_size, wf_selection)
+
+    controls
+    return (simulation_np,)
+
+
+@app.cell
+def _(N_slider, n0_slider, plt, s_slider, simulation_np):
+    _trajectory = simulation_np(n0_slider.value, N_slider.value, s_slider.value)
     plt.plot(_trajectory)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
-    plt.ylim(0, wf_pop_size)
+    plt.ylim(0, N_slider.value)
     plt.xlim(0, len(_trajectory))
     plt.gcf()
-    return wf_initial_count, wf_pop_size, wf_selection
+    return
+
+
+@app.cell
+def _(N_slider, n0_slider, s_slider, simulation_np, simulation_py, time):
+    _reps = 10000
+    _start = time.perf_counter()
+    [simulation_py(n0_slider.value, N_slider.value, s_slider.value) for _ in range(_reps)]
+    _end = time.perf_counter()
+    print(f"Pure Python: {_end - _start:.4f} seconds")
+    _start = time.perf_counter()
+    [simulation_np(n0_slider.value, N_slider.value, s_slider.value) for _ in range(_reps)]
+    _end = time.perf_counter()
+    print(f"NumPy:\t\t {_end - _start:.4f} seconds")
+    return
 
 
 @app.cell(hide_code=True)
@@ -363,21 +392,22 @@ def _(mo):
 
 
 @app.cell
-def _(wf_initial_count, wf_pop_size, wf_selection, simulation_py):
+def _(N_slider, n0_slider, s_slider, simulation_py):
     def simulations_py(n0, N, s, repetitions=10):
         return [simulation_py(n0, N, s) for _ in range(repetitions)]
-    wf_trajectories_py = simulations_py(wf_initial_count, wf_pop_size, wf_selection, 100)
-    return (wf_trajectories_py,)
+
+    py_trajectories = simulations_py(n0_slider.value, N_slider.value, s_slider.value, 100)
+    return (py_trajectories,)
 
 
 @app.cell
-def _(plt, wf_pop_size, wf_trajectories_py):
-    for _trajectory in wf_trajectories_py:
+def _(N_slider, plt, py_trajectories):
+    for _trajectory in py_trajectories:
         plt.plot(_trajectory, 'k', alpha=0.15)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
-    plt.ylim(0, wf_pop_size)
-    plt.xlim(0, max((len(_trajectory) for _trajectory in wf_trajectories_py)))
+    plt.ylim(0, N_slider.value)
+    plt.xlim(0, max((len(_trajectory) for _trajectory in py_trajectories)))
     plt.gcf()
     return
 
@@ -393,7 +423,7 @@ def _(mo):
 
 
 @app.cell
-def _(np, plt, wf_initial_count, wf_pop_size, wf_selection):
+def _(N_slider, n0_slider, np, plt, s_slider):
     def simulations_np(n0, N, s, repetitions=10, buflen=1000):
         n = np.zeros((buflen, repetitions))
         n[0, :] = n0
@@ -408,14 +438,15 @@ def _(np, plt, wf_initial_count, wf_pop_size, wf_selection):
             n[t, ~update] = n[t - 1, ~update]
             update = (n[t] > 0) & (n[t] < N)
         return n[:t].copy()
-    wf_trajectories_np = simulations_np(wf_initial_count, wf_pop_size, wf_selection, 100)
-    plt.plot(wf_trajectories_np, 'k', alpha=0.15)
+
+    trajectories_np = simulations_np(n0_slider.value, N_slider.value, s_slider.value, 100)
+    plt.plot(trajectories_np, 'k', alpha=0.15)
     plt.xlabel('Generations')
     plt.ylabel('Number of $A$, $n$')
-    plt.ylim(0, wf_pop_size)
-    plt.xlim(0, wf_trajectories_np.shape[0])
+    plt.ylim(0, N_slider.value)
+    plt.xlim(0, trajectories_np.shape[0])
     plt.gcf()
-    return (wf_trajectories_np,)
+    return (trajectories_np,)
 
 
 @app.cell(hide_code=True)
@@ -431,9 +462,9 @@ def _(mo):
 
 
 @app.cell
-def _(plt, wf_pop_size, wf_trajectories_np):
-    _idx = wf_trajectories_np.mean(axis=0).argsort()
-    plt.pcolormesh(wf_trajectories_np[:, _idx].T / wf_pop_size)
+def _(N_slider, plt, trajectories_np):
+    _idx = trajectories_np.mean(axis=0).argsort()
+    plt.pcolormesh(trajectories_np[:, _idx].T / N_slider.value)
     plt.colorbar(label='Frequency of $A$')
     plt.xlabel('Generation')
     plt.ylabel('Repetition')
@@ -553,7 +584,14 @@ def _(mo):
 
 
 @app.cell
-def _(Ns, fix_kimura, kimura_initial_count, kimura_selection, pfix_simulated, plt):
+def _(
+    Ns,
+    fix_kimura,
+    kimura_initial_count,
+    kimura_selection,
+    pfix_simulated,
+    plt,
+):
     plt.plot(Ns, pfix_simulated, '.', alpha=0.85, label='simulation')
     plt.plot(Ns, fix_kimura(kimura_initial_count, Ns, kimura_selection), '-', label='Kimura')
     plt.axhline(2 * kimura_selection / (1 + kimura_selection), ls='--', color='k', label='$2s$')
@@ -578,8 +616,8 @@ def _(mo):
 @app.cell
 def _(np):
     _population_sizes = np.logspace(1, 6, 5000, dtype=np.int64)
-    # %timeit [fix_kimura(n0, N, s) for N in _population_sizes]
-    # %timeit fix_kimura(n0, _population_sizes, s)
+    # %timeit [fix_kimura(kimura_initial_count, N, kimura_selection) for N in _population_sizes]
+    # %timeit fix_kimura(kimura_initial_count, _population_sizes, kimura_selection)
     return
 
 
@@ -603,17 +641,16 @@ def _(fix_kimura, kimura_initial_count, kimura_selection, wf_pop_size):
 
 @app.cell
 def _(np):
-    # %timeit fix_kimura(n0, Ns, s)
-    # %timeit fix_kimura_nm(n0, Ns, s)
+    # %timeit fix_kimura(kimura_initial_count, Ns, kimura_selection)
+    # %timeit fix_kimura_nm(kimura_initial_count, Ns, kimura_selection)
     _population_sizes = np.logspace(1, 6, 100, dtype=float)
     return
 
 
 @app.cell
 def _(np):
-    # magic command not supported in marimo; please file an issue to add support
-    # %timeit fix_kimura(n0, Ns, s)
-    # %timeit fix_kimura_nm(n0, Ns, s)
+    # %timeit fix_kimura(kimura_initial_count, Ns, kimura_selection)
+    # %timeit fix_kimura_nm(kimura_initial_count, Ns, kimura_selection)
     _population_sizes = np.logspace(1, 6, 10000, dtype=float)
     return
 
@@ -633,7 +670,7 @@ def _(np):
     def fix_time(n0, N, s, repetitions=10):
         N = int(N)
         n = np.repeat(n0, repetitions)
-        T = np.repeat(np.inf, repetitions)
+        times = np.repeat(np.inf, repetitions)
         t = 0
         n[:] = n0
         update = (n > 0) & (n < N)
@@ -642,8 +679,8 @@ def _(np):
             n[update] = np.random.binomial(N, p[update])
             update = (n > 0) & (n < N)
             t = t + 1
-            T[~update] = np.minimum(T[~update], t)
-        return (n == N, T)
+            times[~update] = np.minimum(times[~update], t)
+        return (n == N, times)
 
     return (fix_time,)
 
@@ -654,7 +691,13 @@ def _(fix_time):
     fixation_pop_size = 1000
     fixation_selection = 0.01
     fixations, times = fix_time(fixation_initial_count, fixation_pop_size, fixation_selection, 100000)
-    return fixation_initial_count, fixation_pop_size, fixation_selection, fixations, times
+    return (
+        fixation_initial_count,
+        fixation_pop_size,
+        fixation_selection,
+        fixations,
+        times,
+    )
 
 
 @app.cell(hide_code=True)
@@ -666,7 +709,16 @@ def _(mo):
 
 
 @app.cell
-def _(fixation_initial_count, fixation_pop_size, fixation_selection, fixations, np, plt, sns, times):
+def _(
+    fixation_initial_count,
+    fixation_pop_size,
+    fixation_selection,
+    fixations,
+    np,
+    plt,
+    sns,
+    times,
+):
     _fig, ax = plt.subplots()
     ax.hist(times[fixations], bins=100, density=True, label='fixations')
     ax.hist(times[~fixations], bins=100, density=True, label='extinctions')
@@ -699,7 +751,12 @@ def _(fix_time, np):
         mean_std_fix_time(*fix_time(fixation_time_initial_count, N, fixation_time_selection, 10000))
         for N in fixation_time_population_sizes
     ])
-    return fixation_time_initial_count, fixation_time_population_sizes, fixation_time_selection, fixation_time_stats
+    return (
+        fixation_time_initial_count,
+        fixation_time_population_sizes,
+        fixation_time_selection,
+        fixation_time_stats,
+    )
 
 
 @app.cell(hide_code=True)
@@ -721,7 +778,15 @@ def _(np):
 
 
 @app.cell
-def _(T_haldane, fixation_time_initial_count, fixation_time_population_sizes, fixation_time_selection, fixation_time_stats, plt, sns):
+def _(
+    T_haldane,
+    fixation_time_initial_count,
+    fixation_time_population_sizes,
+    fixation_time_selection,
+    fixation_time_stats,
+    plt,
+    sns,
+):
     plt.errorbar(
         fixation_time_population_sizes,
         fixation_time_stats[:, 0],
@@ -858,7 +923,14 @@ def _(T_haldane, T_kimura, np):
 
 
 @app.cell
-def _(comparison_population_sizes, fix_time_haldane, fix_time_kimura, fixation_time_stats, plt, sns):
+def _(
+    comparison_population_sizes,
+    fix_time_haldane,
+    fix_time_kimura,
+    fixation_time_stats,
+    plt,
+    sns,
+):
     plt.errorbar(
         comparison_population_sizes,
         fixation_time_stats[:, 0],
