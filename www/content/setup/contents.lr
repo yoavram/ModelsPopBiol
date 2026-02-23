@@ -2,12 +2,10 @@ title: Setup guide
 ---
 body:
 
-This guide gets you ready to run the course notebooks in VS Code using a conda‑forge environment managed with **mamba**.
+This guide gets you ready to run the course marimo notebooks in VS Code using a reproducible **pixi** environment.
 
-#### Install Miniforge
-- Go to <https://conda-forge.org/download/>.
-- Download the Miniforge installer for your OS and CPU.
-- Run the installer with defaults.
+#### Install pixi
+- Follow the installation instructions at <https://pixi.sh/latest/>.
 
 #### Install VS Code
 - Download and install from <https://code.visualstudio.com/>.
@@ -24,30 +22,29 @@ This guide gets you ready to run the course notebooks in VS Code using a conda�
 - Open VS Code → Extensions → search **Python** (by Microsoft) → Install.
 - Reference: <https://code.visualstudio.com/docs/python/python-quick-start>
 
-#### Install the Jupyter extension for VS Code
-- Extensions → search **Jupyter** (by Microsoft) → Install.
+#### Optional: Install the Jupyter extension for VS Code
+- Extensions → search **Jupyter** (by Microsoft) → Install only if you still need to open legacy `.ipynb` notebooks.
 - Reference: <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>
 
 
 #### Create the course environment from the VS Code terminal
-- In VS Code: **Terminal → New Terminal**. Confirm the terminal path is the course folder (the one containing `environment.yaml`).
+- In VS Code: **Terminal → New Terminal**. Confirm the terminal path is the course folder (the one containing `pixi.lock`).
 - Run:
   ```bash
-  mamba env create -f environment.yaml
-  conda activate modelspopbio
+  pixi install --locked
   ```
-- If `mamba` is unavailable, install it with `conda install -n base -c conda-forge mamba` or run `conda env create -f environment.yaml` instead.
 
-#### Open the notebooks and select the kernel
-- Open `index.ipynb` in VS Code.
-- In the notebook editor, set the kernel to the course environment:
-  - Click the kernel picker at the top right → choose the interpreter named `modelspopbio`.
+#### Open marimo notebooks
+- Run marimo from the VS Code terminal:
+  ```bash
+  pixi run marimo edit notebooks/population-growth.py
+  ```
+- You can open other course notebooks by replacing the file name with another notebook in `notebooks/*.py`.
 
 #### Quick test
-In a notebook cell, run:
-```python
-import numpy
-print(numpy.__version__)
+In the VS Code terminal, run:
+```bash
+pixi run python -c "import numpy; print(numpy.__version__)"
 ```
 You should see version number without errors.
 

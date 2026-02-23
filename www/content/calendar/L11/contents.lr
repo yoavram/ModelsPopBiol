@@ -9,4 +9,4 @@ description:
 Bayesian inference in deterministic models: Predator-prey model
 
 ---
-materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian_ode.ipynb) <br>
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian_ode.py) <br>
