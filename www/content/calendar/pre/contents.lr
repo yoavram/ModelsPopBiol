@@ -13,7 +13,7 @@ Tutorials <br>
 materials:
 
 [Book: Think Python](https://greenteapress.com/wp/think-python-2e/) <br>
-[Python tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/python.ipynb) <br>
-[NumPy tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/numpy.ipynb) <br>
-[Matplotlib tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/matplotlib.ipynb) <br>
-[Pandas and Seaborn](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/pandas-seaborn.ipynb) <br>
+[Python tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/python.py) <br>
+[NumPy tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/numpy-basics.py) <br>
+[Matplotlib tutorial](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/matplotlib-basics.py) <br>
+[Pandas and Seaborn](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/pandas-seaborn.py) <br>
