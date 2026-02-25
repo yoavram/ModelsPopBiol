@@ -385,7 +385,7 @@ def _(A_base, dominant_demography, pd, stage_summary):
         }
     )
     asymptotic_df
-    return lambda_base, reproductive_value, stable_stage
+    return asymptotic_df, lambda_base, reproductive_value, stable_stage
 
 
 @app.cell
