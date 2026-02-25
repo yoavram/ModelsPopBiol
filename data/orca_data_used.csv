@@ -1,0 +1,2 @@
+"Immature_survival_life_table_id","Adult_survival_life_table_id","Censored_survival","Extended_survival","Survival_modeled","Survival_comments","mx_id","N_offspring_id","P_reproduce_id","Litter_size_id","Censored_reproduction","Extended_reproduction","Reproduction_modeled","Reproduction_comments","Age_interval"
+40,42,"N","N","N","Age shift of -0,5 (mx include 6 month survival), 5 years adult age class converted into annual survival",43,NA,NA,NA,"N","N","N",NA,1
