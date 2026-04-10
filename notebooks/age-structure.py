@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.19.9"
 app = marimo.App()
 
 
@@ -24,10 +24,48 @@ def _():
     import pandas as pd
     import matplotlib.pyplot as plt
     import seaborn as sns
+    from age_structure_model import (
+        DATA_DIR,
+        STAGE_SPEC,
+        behavioral_checks,
+        build_lefkovitch_matrix,
+        clean_life_table,
+        dominant_demography,
+        finite_sensitivity_elasticity,
+        load_orca_data,
+        long_run_growth_factor,
+        make_init_vectors,
+        matrix_checks,
+        project_periodic_bad_years,
+        project_population,
+        summarize_stages,
+        threshold_frontier,
+    )
 
     sns.set_context("talk")
     sns.set_palette("colorblind")
-    return mo, np, pd, plt, sns
+    return (
+        DATA_DIR,
+        STAGE_SPEC,
+        behavioral_checks,
+        build_lefkovitch_matrix,
+        clean_life_table,
+        dominant_demography,
+        finite_sensitivity_elasticity,
+        load_orca_data,
+        long_run_growth_factor,
+        make_init_vectors,
+        matrix_checks,
+        mo,
+        np,
+        pd,
+        plt,
+        project_periodic_bad_years,
+        project_population,
+        sns,
+        summarize_stages,
+        threshold_frontier,
+    )
 
 
 @app.cell(hide_code=True)
@@ -55,33 +93,14 @@ def _(mo):
 
 
 @app.cell
-def _(pd):
-    lt_raw = pd.read_csv("../data/orca_life_table.csv")
-    metric_raw = pd.read_csv("../data/orca_demographic_metric.csv")
-    data_used_raw = pd.read_csv("../data/orca_data_used.csv")
+def _(load_orca_data):
+    lt_raw, metric_raw, data_used_raw = load_orca_data()
     return data_used_raw, lt_raw, metric_raw
 
 
 @app.cell
-def _(lt_raw, np, pd):
-    lt_clean = lt_raw.copy()
-    lt_clean["Age"] = lt_clean["Age"].astype(int)
-    lt_clean["Sx"] = pd.to_numeric(lt_clean["Sx"], errors="coerce")
-    lt_clean["lx"] = pd.to_numeric(lt_clean["lx"], errors="coerce")
-    lt_clean["mx"] = pd.to_numeric(lt_clean["mx"], errors="coerce")
-    lt_clean = lt_clean.sort_values("Age", kind="mergesort").reset_index(drop=True)
-    lt_clean["dx"] = lt_clean["lx"] * (1.0 - lt_clean["Sx"])
-    lt_clean["female_births"] = lt_clean["mx"]
-
-    _age_diff = np.diff(lt_clean["Age"].to_numpy())
-    _checks = {
-        "age_increases_by_1": bool(np.all(_age_diff == 1)),
-        "sx_in_unit_interval": bool(((lt_clean["Sx"] >= 0) & (lt_clean["Sx"] <= 1)).all()),
-        "lx_nonincreasing": bool(np.all(np.diff(lt_clean["lx"].to_numpy()) <= 1e-12)),
-        "mx_nonnegative": bool((lt_clean["mx"] >= 0).all()),
-        "no_missing_required": bool(not lt_clean[["Age", "Sx", "lx", "mx"]].isna().any().any()),
-    }
-    data_checks = pd.DataFrame({"check": list(_checks.keys()), "pass": list(_checks.values())})
+def _(clean_life_table, lt_raw):
+    lt_clean, data_checks = clean_life_table(lt_raw)
     return data_checks, lt_clean
 
 
@@ -152,44 +171,14 @@ def _(mo):
 
 
 @app.cell
-def _(np, pd):
-    stage_spec = pd.DataFrame(
-        {
-            "stage": ["Juvenile", "Early reproductive", "Prime reproductive", "Older/post"],
-            "start_age": [0, 11, 25, 45],
-            "end_age": [10, 24, 44, np.nan],
-        }
-    )
+def _(STAGE_SPEC):
+    stage_spec = STAGE_SPEC.copy()
     return (stage_spec,)
 
 
 @app.cell
-def _(lt_clean, np, pd, stage_spec):
-    _rows = []
-    _max_age = int(lt_clean["Age"].max())
-
-    for _i, _row in stage_spec.iterrows():
-        _start_age = int(_row["start_age"])
-        _end_age = _max_age if np.isnan(_row["end_age"]) else int(_row["end_age"])
-        _mask = (lt_clean["Age"] >= _start_age) & (lt_clean["Age"] <= _end_age)
-        _subset = lt_clean.loc[_mask]
-
-        _duration = int(_subset.shape[0])
-        _plus_group = bool(np.isnan(_row["end_age"]))
-
-        _rows.append(
-            {
-                "stage": _row["stage"],
-                "start_age": _start_age,
-                "end_age": _end_age,
-                "duration": _duration,
-                "plus_group": _plus_group,
-                "annual_survival": float(_subset["Sx"].mean()),
-                "fecundity": float(_subset["female_births"].mean()),
-            }
-        )
-
-    stage_summary = pd.DataFrame(_rows)
+def _(lt_clean, stage_spec, summarize_stages):
+    stage_summary = summarize_stages(lt_clean, stage_spec)
     return (stage_summary,)
 
 
@@ -207,141 +196,6 @@ def _(mo):
     We use a stage-structured projection matrix with within-stage stasis and between-stage maturation.
     """)
     return
-
-
-@app.cell
-def _(np):
-    def build_lefkovitch_matrix(
-        stage_summary,
-        juvenile_survival_mult=1.0,
-        adult_survival_mult=1.0,
-        maturation_mult=1.0,
-        fertility_mult=1.0,
-    ):
-        _n_stage = stage_summary.shape[0]
-        _a = np.zeros((_n_stage, _n_stage), dtype=float)
-
-        _survival = stage_summary["annual_survival"].to_numpy(dtype=float)
-        _fecundity = stage_summary["fecundity"].to_numpy(dtype=float)
-        _duration = stage_summary["duration"].to_numpy(dtype=float)
-
-        _survival_eff = _survival.copy()
-        _survival_eff[0] *= juvenile_survival_mult
-        if _n_stage > 1:
-            _survival_eff[1:] *= adult_survival_mult
-        _survival_eff = np.clip(_survival_eff, 0.0, 1.0)
-
-        _fecundity_eff = np.clip(_fecundity * fertility_mult, 0.0, None)
-        _a[0, :] = _fecundity_eff
-
-        for _j in range(_n_stage - 1):
-            _base_gamma = 1.0 / max(1.0, _duration[_j])
-            _gamma = _base_gamma * (maturation_mult if _j == 0 else 1.0)
-            _gamma = float(np.clip(_gamma, 0.0, 1.0))
-
-            _a[_j, _j] = _survival_eff[_j] * (1.0 - _gamma)
-            _a[_j + 1, _j] = _survival_eff[_j] * _gamma
-
-        _a[-1, -1] = _survival_eff[-1]
-        return _a
-
-    def dominant_demography(matrix_a):
-        _eigvals, _eigvecs = np.linalg.eig(matrix_a)
-        _idx = int(np.argmax(_eigvals.real))
-
-        _lambda_dom = float(_eigvals[_idx].real)
-
-        _stable = np.real(_eigvecs[:, _idx]).astype(float)
-        if _stable.sum() < 0:
-            _stable *= -1.0
-        _stable = np.abs(_stable)
-        _stable = _stable / _stable.sum()
-
-        _left_vals, _left_vecs = np.linalg.eig(matrix_a.T)
-        _idx_left = int(np.argmax(_left_vals.real))
-        _reproductive = np.real(_left_vecs[:, _idx_left]).astype(float)
-        if np.dot(_reproductive, _stable) < 0:
-            _reproductive *= -1.0
-        _reproductive = _reproductive / np.dot(_reproductive, _stable)
-
-        return _lambda_dom, _stable, _reproductive
-
-    def project_population(matrix_a, n0_vector, n_years):
-        _n_years = int(n_years)
-        _traj = np.zeros((_n_years + 1, matrix_a.shape[0]), dtype=float)
-        _traj[0, :] = np.array(n0_vector, dtype=float)
-
-        for _t in range(_n_years):
-            _traj[_t + 1, :] = matrix_a @ _traj[_t, :]
-
-        _total = _traj.sum(axis=1)
-        return _traj, _total
-
-    def project_periodic_bad_years(
-        stage_summary,
-        n0_vector,
-        n_years,
-        bad_period,
-        bad_juvenile_mult,
-        bad_fertility_mult,
-    ):
-        _good = build_lefkovitch_matrix(stage_summary)
-        _bad = build_lefkovitch_matrix(
-            stage_summary,
-            juvenile_survival_mult=bad_juvenile_mult,
-            adult_survival_mult=1.0,
-            maturation_mult=1.0,
-            fertility_mult=bad_fertility_mult,
-        )
-
-        _n_years = int(n_years)
-        _traj = np.zeros((_n_years + 1, _good.shape[0]), dtype=float)
-        _traj[0, :] = np.array(n0_vector, dtype=float)
-
-        _period = int(bad_period)
-        for _t in range(_n_years):
-            _use_bad = _period > 0 and ((_t + 1) % _period == 0)
-            _a_t = _bad if _use_bad else _good
-            _traj[_t + 1, :] = _a_t @ _traj[_t, :]
-
-        _total = _traj.sum(axis=1)
-        return _traj, _total, _good, _bad
-
-    def long_run_growth_factor(total_series):
-        _vals = np.clip(np.asarray(total_series, dtype=float), 1e-12, None)
-        _log_diff = np.diff(np.log(_vals))
-        if _log_diff.size == 0:
-            return float("nan")
-        _start = _log_diff.size // 2
-        return float(np.exp(_log_diff[_start:].mean()))
-
-    def finite_sensitivity_elasticity(matrix_a, rel_eps=1e-6):
-        _lambda_base, _, _ = dominant_demography(matrix_a)
-        _sens = np.full_like(matrix_a, np.nan, dtype=float)
-        _elas = np.full_like(matrix_a, np.nan, dtype=float)
-
-        for _i in range(matrix_a.shape[0]):
-            for _j in range(matrix_a.shape[1]):
-                if matrix_a[_i, _j] <= 0:
-                    continue
-                _delta = matrix_a[_i, _j] * rel_eps
-                _a_pert = matrix_a.copy()
-                _a_pert[_i, _j] += _delta
-                _lambda_pert, _, _ = dominant_demography(_a_pert)
-                _s_ij = (_lambda_pert - _lambda_base) / _delta
-                _sens[_i, _j] = _s_ij
-                _elas[_i, _j] = _s_ij * matrix_a[_i, _j] / _lambda_base
-
-        return _sens, _elas
-
-    return (
-        build_lefkovitch_matrix,
-        dominant_demography,
-        finite_sensitivity_elasticity,
-        long_run_growth_factor,
-        project_periodic_bad_years,
-        project_population,
-    )
 
 
 @app.cell
@@ -386,6 +240,13 @@ def _(A_base, dominant_demography, pd, stage_summary):
     )
     asymptotic_df
     return asymptotic_df, lambda_base, reproductive_value, stable_stage
+
+
+@app.cell
+def _(A_base, lambda_base, matrix_checks, pd, stable_stage):
+    matrix_check_df = matrix_checks(A_base, stable_stage, lambda_base)
+    matrix_check_df
+    return (matrix_check_df,)
 
 
 @app.cell
@@ -439,14 +300,9 @@ def _(mo):
 
 
 @app.cell
-def _(n0_ui, np, stable_stage):
+def _(make_init_vectors, n0_ui, stable_stage):
     _n0 = float(n0_ui.value)
-    init_compositions = {
-        "Stable": stable_stage,
-        "Juvenile-heavy": np.array([0.70, 0.20, 0.08, 0.02]),
-        "Older-heavy": np.array([0.05, 0.15, 0.35, 0.45]),
-    }
-    init_vectors = {k: _n0 * v / v.sum() for k, v in init_compositions.items()}
+    init_vectors = make_init_vectors(stable_stage, _n0)
     return init_vectors
 
 
@@ -545,6 +401,13 @@ def _(elasticity_df, plt, sns):
 def _(elasticity_long):
     elasticity_long.head(8)
     return
+
+
+@app.cell
+def _(behavioral_checks, stage_summary):
+    validation_df = behavioral_checks(stage_summary)
+    validation_df
+    return (validation_df,)
 
 
 @app.cell(hide_code=True)
@@ -782,6 +645,13 @@ def _(
         index="juvenile_survival_multiplier", columns="bad_period", values="growth_factor"
     )
     return threshold_df, threshold_pivot
+
+
+@app.cell
+def _(threshold_df, threshold_frontier):
+    threshold_frontier_df = threshold_frontier(threshold_df)
+    threshold_frontier_df
+    return (threshold_frontier_df,)
 
 
 @app.cell
