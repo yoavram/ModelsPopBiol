@@ -8,7 +8,7 @@
    The calendar entry is still `TBD` and has no materials yet.
 
 ## Assignments To Do
-
+1. Update dates.
 1. Tell students to set up the course environment:
    https://modelspopbiol.yoavram.com/setup/
 1. Create `assignments/A1.py` for continuous-time deterministic models.
