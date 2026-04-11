@@ -547,7 +547,7 @@ def _(mo):
 
     This linearization is given by the the Jacobian at the equiblirum $(x^*, y^*)$.
 
-    **The equilibrium is stable if all eigenvalues of the linear system have negative real parts.** (see [notebook on stability analysis](stability.ipynb) or ch. 8 in Otto and Day 2007).
+    **The equilibrium is stable if all eigenvalues of the linear system have negative real parts.** (see [notebook on stability analysis](stability.py) or ch. 8 in Otto and Day 2007).
 
     For more details see references at the bottom of the page.
     """)

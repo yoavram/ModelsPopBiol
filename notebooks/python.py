@@ -18,9 +18,9 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Hello Jupyter!
+    # Hello Marimo!
 
-    To execute code in Jupyter notebook press `Shift+Enter` (or `Shift+Return`) or press `Control+Enter` (or `Command+Return`). The former will execute and advance, the later will execute and stay.
+    To execute code in a Marimo notebook press `Shift+Enter` (or `Shift+Return`) or press `Control+Enter` (or `Command+Return`). The former will execute and advance, the later will execute and stay.
     You can also use the ▶️ button on the command pallete above.
     """)
     return
@@ -873,7 +873,7 @@ def _(mo):
 
 @app.cell
 def _():
-    x_1 = 'Jupyter'
+    x_1 = 'Marimo'
     y = 'I love Python'
     print(x_1)
     print(y)

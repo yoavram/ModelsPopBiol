@@ -3,7 +3,7 @@ title: Project
 body:
 
 Students will complete a final project that applies methods and approaches discussed in the course.
-The project must submitted as a single Jupyter notebook with text, code (preferably Python), results, and figures that describe the problem, the methods, and the results.
+The project must submitted as a single Marimo notebook with text, code (preferably Python), results, and figures that describe the problem, the methods, and the results.
 You must also submit a **5 minute presentation as a video recording**.
 In this recording you will present the problem, methods, and results in *English*.
 
@@ -45,10 +45,10 @@ See the [calendar](/calendar).
 ### Submission instructions
 
 - Everything must be done in English
-- The submitted notebook should introduce the question and hypothesis, describe the models, methods, and algorithms, present the results and their interpretations with regard to the hypothesis (see Proposal).
+- The submitted Marimo notebook should introduce the question and hypothesis, describe the models, methods, and algorithms, present the results and their interpretations with regard to the hypothesis (see Proposal).
 - The names and emails of the authors **should** be included in the notebook.
-- The file name should simply be `final.ipynb`.
-- Please submit exactly one notebook file (`.ipynb`) containing all your figures (i.e. use `%matplotlib inline`).
+- The file name should simply be `final.py`.
+- Please submit exactly one Marimo notebook file (`.py`) containing your code, narrative, and figures.
 - You must also submit a recorded presentation of your project (5 min, or 7 min for pairs). The presentation format is flexible: you can explain the notebook, you can use a PowerPoint presenation, or use another approach.
 - The recordings will be viewed only by course staff.
 - The project should be submitted on Moodle.

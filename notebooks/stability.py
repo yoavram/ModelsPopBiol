@@ -12,7 +12,7 @@ def _():
     ## [Models in Population Biology](http://scicompy.yoavram.com)
     ## Yoav Ram
 
-    This is an appendix that provides the mathematical background to local stability analysis as used in the [predator-prey model](predator-prey.ipynb) and the [SIR model](gillespie.ipynb) notebooks.
+    This is an appendix that provides the mathematical background to local stability analysis as used in the [predator-prey model](predator-prey.py) and the [SIR model](gillespie.py) notebooks.
     """)
     return
 

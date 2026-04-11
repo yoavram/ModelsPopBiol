@@ -2,7 +2,7 @@ title: Setup guide
 ---
 body:
 
-This guide gets you ready to run the course notebooks in VS Code using the official marimo extension, GitHub Copilot, and a reproducible **pixi** environment.
+This guide gets you ready to run the course Marimo notebooks in VS Code using the official marimo extension, GitHub Copilot, and a reproducible **pixi** environment. Additional lecture and assignment notebooks will be published in Marimo format as the course proceeds.
 
 #### Install pixi
 - Follow the installation instructions at <https://pixi.sh/latest/>.
@@ -39,7 +39,7 @@ pixi run python -c "import numpy; print(numpy.__version__)"
 ```
 You should see version number without errors.
 
-#### Open notebooks in VS Code (main flow)
+#### Open Marimo notebooks in VS Code (main flow)
 - Open `index.py` in VS Code.
 - Click the Marimo notebook button in the editor to view it as a notebook instead of a `.py` file.
 
@@ -52,7 +52,3 @@ You should see version number without errors.
   ```bash
   pixi run marimo edit notebooks
   ```
-
-#### Optional: Install the Jupyter extension for VS Code
-- Extensions → search **Jupyter** (by Microsoft) → Install only if you still need to open legacy `.ipynb` notebooks.
-- Reference: <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>

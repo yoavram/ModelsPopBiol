@@ -97,7 +97,7 @@ def _(os, urllib):
 def _(mo):
     mo.md(r"""
     We saved the file to the local filesystem.
-    We can have a look at the file contents from the notebook by calling the notebook magic command `%cat <filename>`, replacing `<filename>` with the name of the file, or with the variable, prepended by `$`.
+    We can have a look at the file contents from the notebook by calling shell tools from the terminal or a Python helper, replacing `<filename>` with the name of the file or the relevant variable.
     """)
     return
 

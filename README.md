@@ -4,15 +4,26 @@
 
 [![Official website](https://img.shields.io/badge/Website-ModelsPopBiol-orange.svg)](https://modelspopbiol.yoavram.com)
 
-## Environment (pixi + marimo pilot)
+## Environment (pixi + marimo)
 
-1. Create/update the environment from lockfile:
+1. Install prerequisites:
+   - `pixi`: <https://pixi.sh/latest/>
+   - `VS Code`: <https://code.visualstudio.com/>
+   - VS Code extensions: Python (Microsoft), Marimo (official)
+2. Create/update the environment from lockfile:
    - `pixi install --locked`
-2. Open pilot notebooks:
-   - `pixi run marimo edit notebooks/population-growth.py`
-   - `pixi run marimo edit notebooks/predator-prey.py`
-3. Full setup notes:
-   - `docs/marimo/README.md`
+3. Open the currently available course notebooks in marimo:
+   - `pixi run marimo edit index.py`
+   - `pixi run marimo edit notebooks`
+4. VS Code interpreter:
+   - macOS/Linux: `.pixi/envs/default/bin/python`
+   - Windows: `.pixi\\envs\\default\\python.exe`
+
+Lecture and assignment notebooks are being published in Marimo format as the course proceeds.
+
+If you update dependencies or the lockfile as a maintainer, use `pixi install`.
+
+Coding agents are useful for refactoring, debugging, parameter sweeps, and writing tests for reusable helpers, but their numerical and biological conclusions should still be checked critically.
 
 ## Syllabus
 
@@ -28,9 +39,9 @@ Every class will present a scientific problem in population biology, a computati
 ## Tutorials
 
 - [Calculus](https://www.youtube.com/watch?v=WUvTyaaNkzM)
-- [Python](https://github.com/yoavram/SciComPy/blob/master/notebooks/python.ipynb)
-- [NumPy](https://github.com/yoavram/SciComPy/blob/master/notebooks/numpy.ipynb)
-- [Matplotlib](https://github.com/yoavram/SciComPy/blob/master/notebooks/matplotlib.ipynb) 
+- [Python](notebooks/python.py)
+- [NumPy](notebooks/numpy-basics.py)
+- [Matplotlib](notebooks/matplotlib-basics.py)
 
 ## License
 

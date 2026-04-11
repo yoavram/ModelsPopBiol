@@ -2,9 +2,9 @@ title: Assignments
 ---
 body:
 
-Assignments will be published as Jupyter notebooks.
+Assignments will be published as Marimo notebooks as they are prepared during the semester.
 Students will accomplish specific tasks by writing Python code in these notebooks, in a manner similar to the course notebooks.
-Assignment submissions will include the completed Jupyter notebooks.
+Assignment submissions will include the completed Marimo notebooks once each assignment is released.
 
 Solutions will be published on the [Calendar](/calendar) page as soon as possible.
 
@@ -33,9 +33,9 @@ The due dates for all assignments are on the <a href="calendar.html">Calendar</a
 
 - Assignments should be submitted on [Moodle](https://moodle.tau.ac.il/course/view.php?id=431337701).
 - Your name **should not** be included in the notebook or in the filename.
-- Your submission should be named `AX.ipynb`, where `X` is replaced with the assignment number, e.g. `A3.ipynb` for assignment #3.
+- Your submission should be named `AX.py`, where `X` is replaced with the assignment number, e.g. `A3.py` for assignment #3.
 - Please submit each assignment in its dedicated submission page.
-- Unless otherwise mentioned, please submit a single notebook file (`.ipynb`)  containing all your figures (i.e. use `%matplotlib inline`).
+- Unless otherwise mentioned, please submit a single Marimo notebook file (`.py`) containing all your figures.
 - **Do not email** your assignments.
 
 ### Collaboration Policy
@@ -44,4 +44,3 @@ The due dates for all assignments are on the <a href="calendar.html">Calendar</a
 - You **may** discuss the assignment with other students.
 - You **may not** share assignment code with other students.
 - You **may not** write assignment code together with other students.
-
