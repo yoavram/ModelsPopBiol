@@ -7,28 +7,15 @@
 2. Lecture 13: `TBD`
    The calendar entry is still `TBD` and has no materials yet.
 
-## Missing Assignment Notebooks
+## Assignments To Do
 
-1. Assignment 1: continuous-time deterministic models
-   No `assignments/A1.py` Marimo notebook yet.
-2. Assignment 2: discrete-time deterministic models
-   No `assignments/A2.py` Marimo notebook yet.
-3. Assignment 3: stochastic models
-   No `assignments/A3.py` Marimo notebook yet.
-4. Assignment 4: statistical inference
-   No `assignments/A4.py` Marimo notebook yet.
-5. Assignment 5: Bayesian inference
-   No `assignments/A5.py` Marimo notebook yet.
-
-## Missing Assignment Releases In Calendar
-
-1. Assignment entries `A1` through `A5` have due dates, but their `materials` fields are empty.
-2. Add links to the Marimo assignment notebooks in:
-   `www/content/calendar/A1/contents.lr`
-   `www/content/calendar/A2/contents.lr`
-   `www/content/calendar/A3/contents.lr`
-   `www/content/calendar/A4/contents.lr`
-   `www/content/calendar/A5/contents.lr`
+1. Tell students to set up the course environment:
+   https://modelspopbiol.yoavram.com/setup/
+1. Create `assignments/A1.py` for continuous-time deterministic models.
+2. Create `assignments/A2.py` for discrete-time deterministic models.
+3. Create `assignments/A3.py` for stochastic models.
+4. Create `assignments/A4.py` for statistical inference.
+5. Create `assignments/A5.py` for Bayesian inference.
 
 ## Optional Follow-Up
 
