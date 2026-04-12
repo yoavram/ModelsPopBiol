@@ -1,16 +1,12 @@
 title: Lecture 5
 ---
-date: 2026-05-05
+date: 2026-05-19
 ---
 description:
 
 Discrete-time stochastic model: Wright-Fisher model 
 
 ---
-name:
-
-Population Genetics 2
+name: Population Genetics 2
 ---
-materials:
-
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/wright-fisher.py)
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/wright-fisher.py)

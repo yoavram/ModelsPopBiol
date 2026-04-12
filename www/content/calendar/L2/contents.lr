@@ -1,15 +1,11 @@
 title: Lecture 2
 ---
-date: 2026-03-24
+date: 2026-04-28
 ---
-description:
-
-Continuous-time univariate deterministic model: Population growth models
+description: Continuous-time univariate deterministic model: Population growth models
 ---
 name:
 
 Population Dynamics 1 
 ---
-materials:
-
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/population-growth.py)
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/population-growth.py)

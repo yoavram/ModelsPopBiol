@@ -1,6 +1,6 @@
 title: Lecture 8
 ---
-date: 2026-05-26
+date: 2026-06-09
 ---
 description:
 
@@ -9,6 +9,4 @@ Bayesian inference: Count data
 ---
 name: Statistical Inference 2
 ---
-materials:
-
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian.py) <br>
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/bayesian.py) <br>

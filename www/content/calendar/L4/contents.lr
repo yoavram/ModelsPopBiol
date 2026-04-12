@@ -1,16 +1,12 @@
 title: Lecture 4
 ---
-date: 2026-04-28
+date: 2026-05-12
 ---
 description:
 
 Discrete-time univariate deterministic model: Haploid selection 
 
 ---
-name:
-
-Population Genetics 1
+name: Population Genetics 1
 ---
-materials:
-
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/population-genetics.py)
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/population-genetics.py)
