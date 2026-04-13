@@ -8,6 +8,7 @@ version = "0.1.0"
 [tasks]
 marimo = "marimo edit . --watch --mcp --no-token"
 marimo-check = "marimo check"
+lektor = "cd www && lektor serve"
 
 [dependencies]
 python = "3.11.*"
