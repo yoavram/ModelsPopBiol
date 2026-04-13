@@ -1,6 +1,6 @@
 title: Lecture 12
 ---
-date: 2026-07-05
+date: 2026-07-14
 ---
 name: Statistical Inference 4
 ---
@@ -9,7 +9,4 @@ description:
 Likelihood-free inference: Animal social networks
 
 ---
-materials:
-
-[Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/lfi.py) <br>
-
+materials: [Notebook](https://github.com/yoavram/ModelsPopBiol/blob/master/notebooks/lfi.py) <br>
