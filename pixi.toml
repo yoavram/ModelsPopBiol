@@ -22,7 +22,7 @@ numba = ">=0.63.1,<0.64"
 pyzmq = ">=27.1.0,<28"
 
 [pypi-dependencies]
-marimo = { version = ">=0.19.9, <0.20", extras = ["mcp"] }
+marimo = ">=0.23.3"
 pydantic-ai = ">=0.2.4, <0.3"
 corner = ">=2.2.3,<3"
 altair = ">=6.0.0,<7"
