@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.3"
 app = marimo.App()
 
 
@@ -362,7 +362,7 @@ def _(mo):
 
     - [Blog post](https://paulromer.net/economic-growth/) by Paul Romer on population and GDP growth
     - Appendices of [Ram et al. 2019](https://doi.org/10.1073/pnas.1902217116) shows how to derive and solve the logistic and generalized logistic.
-    - [Hilau et al. 2022](https://doi.org/10.1371/journal.pcbi.1010565) talks about density-Dependent effects as the main determinants of variation in bacterial growth dynamics.
+    - [Hilau et al. 2022](https://doi.org/10.1371/journal.pcbi.1010565) talks about density-dependent effects as the main determinants of variation in bacterial growth dynamics.
     """)
     return
 
