@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.5"
 app = marimo.App()
 
 
@@ -182,7 +182,7 @@ def _(mo):
     mo.md(r"""
     Some of the solvers require the Jacobian, or the matrix of 2nd order parital derivatives:
 
-    $$ \mathbf{J}(x, y) = \\(b - h y, -h x),\\ (\epsilon h y, \epsilon h x - d) $$
+    $$ \mathbf{J}(x, y) = \begin{pmatrix} b - hy & -hx \\ \epsilon h y & \epsilon h x - d \end{pmatrix} $$
     """)
     return
 
@@ -263,20 +263,7 @@ def _(mo):
 
 @app.cell
 def _(dxydt, jac, np, partial, plt, sns, solve_ivp):
-    def solve_plot(
-        x0,
-        y0,
-        tmax,
-        b,
-        h,
-        ε,
-        d,
-        q_dt=10,
-        return_value=True,
-        method="BDF",
-        rtol=1e-6,
-        atol=1e-9,
-    ):
+    def solve_plot(x0, y0, tmax, b, h, ε, d, q_dt=10, return_value=True, method="BDF", rtol=1e-6, atol=1e-9):
         t = np.linspace(0, tmax, tmax*10)
         xy0 = (x0, y0)
         dxydt_ = partial(dxydt, b=b, h=h, ε=ε, d=d)
@@ -336,7 +323,18 @@ def _(mo):
         gap=0.5,
     )
     controls
-    return atol_exp_ui, b_ui, d_ui, h_ui, method_ui, rtol_exp_ui, tmax_ui, x0_ui, y0_ui, ε_ui
+    return (
+        atol_exp_ui,
+        b_ui,
+        d_ui,
+        h_ui,
+        method_ui,
+        rtol_exp_ui,
+        tmax_ui,
+        x0_ui,
+        y0_ui,
+        ε_ui,
+    )
 
 
 @app.cell
@@ -356,18 +354,7 @@ def _(
 ):
     rtol = 10.0 ** (-rtol_exp_ui.value)
     atol = 10.0 ** (-atol_exp_ui.value)
-    solve_plot(
-        x0=x0_ui.value,
-        y0=y0_ui.value,
-        tmax=tmax_ui.value,
-        b=b_ui.value,
-        h=h_ui.value,
-        ε=ε_ui.value,
-        d=d_ui.value,
-        method=method_ui.value,
-        rtol=rtol,
-        atol=atol,
-    )
+    solve_plot(x0=x0_ui.value, y0=y0_ui.value, tmax=tmax_ui.value, b=b_ui.value, h=h_ui.value, ε=ε_ui.value, d=d_ui.value, method=method_ui.value, rtol=rtol, atol=atol)
     plt.gcf()
     return
 
@@ -383,7 +370,7 @@ def _(mo):
 
     $$ bx - hxy = 0 $$
 
-    $$ \epsilon h x y - d y = 0 $$
+    $$ \epsilon h x y - d y = 0 \Rightarrow $$
 
     $$ x (b - hy) = 0 $$
 
@@ -482,19 +469,30 @@ def _(mo):
         value="both up",
         label="direction",
     )
-    perturb_controls = mo.hstack([perturb_pct_ui, direction_ui], justify="start", gap=1.0)
-    perturb_controls
-    return direction_ui, perturb_pct_ui
-
-
-@app.cell
-def _(b, d, direction_ui, dxydt, h, perturb_pct_ui, xstar, ystar, ε):
     direction_to_sign = {
         "both up": (1, 1),
         "both down": (-1, -1),
         "prey up / predator down": (1, -1),
         "prey down / predator up": (-1, 1),
     }
+    perturb_controls = mo.hstack([perturb_pct_ui, direction_ui], justify="start", gap=1.0)
+    perturb_controls
+    return direction_to_sign, direction_ui, perturb_pct_ui
+
+
+@app.cell
+def _(
+    b,
+    d,
+    direction_to_sign,
+    direction_ui,
+    dxydt,
+    h,
+    perturb_pct_ui,
+    xstar,
+    ystar,
+    ε,
+):
     sign_x, sign_y = direction_to_sign[direction_ui.value]
     delta = perturb_pct_ui.value / 100.0
     xypert = xstar * (1 + sign_x * delta), ystar * (1 + sign_y * delta)
@@ -523,7 +521,7 @@ def _(b, d, h, plt, solve_plot, xypert, xystar, ε):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    So we see that the initial equilibirum point (right: time zero; left: red circle) is **unstable**: it "swirls" outwards, but is seems to "swirl" towards some limit cycle; it seems to converge to an orbit.
+    So we see that the initial equilibirum point (right: time zero; left: red circle) is **unstable**: it "swirls" outwards from the equilibrium point, but is seems to "swirl" towards some limit cycle; it seems to converge to an orbit.
 
     Let's continue the dynamics from where we stopped it.
     """)
@@ -685,7 +683,7 @@ def _(mo):
 
     In a [two-equation system](https://en.wikipedia.org/wiki/Linear_dynamical_system#Classification_in_two_dimensions) we can learn more about the stability by looking at the product and sum of the eigenvalues, $\Delta=\lambda_1 \lambda_2 = -bd < 0$ and $\tau=\lambda_1 + \lambda_2=0$.
 
-    So the equilibrium point is a _center_ of a stable cycle: there is a stable "orbit" around the fixed point, which was what we kindof suspected.
+    So the equilibrium point is a _center_ of a stable cycle: there is a stable "orbit" around the fixed point, which was what we suspected.
     """)
     return
 
@@ -747,12 +745,11 @@ def _(mo):
     mo.md(r"""
     # Further reading
 
-    - [Discussion of predation with some biological data](https://globalchange.umich.edu/globalchange1/current/lectures/predation/predation.html)
     - [Evolution towards oscillation or stability in a predator–prey system](http://rspb.royalsocietypublishing.org/content/277/1697/3163)
     - A Biologist's Guide to Mathematical Modeling in Ecology and Evolution by Otto and Day 2007 (available online via the [library](https://idc-primo.hosted.exlibrisgroup.com/primo-explore/fulldisplay?docid=972IDC_INST_ALMA2152572240003105&context=L&vid=972IDC_INST_V1&search_scope=IDC)):
-     - Chapter 5 for equilibria and stability with one variable.
-     - Chapter 7 for equilibria and stability with multiple variables.
-     - Chapter 8 for equilibria and stability with multiple variables in non-linear models.
+      - Chapter 5 for equilibria and stability with one variable.
+      - Chapter 7 for equilibria and stability with multiple variables.
+      - Chapter 8 for equilibria and stability with multiple variables in non-linear models.
     """)
     return
 
