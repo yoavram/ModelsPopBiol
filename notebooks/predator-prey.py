@@ -447,7 +447,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    We concentrate on small perturbations, that is, the concept of **local stability** (see [notebook on stability analysis](stability.py) or ch. 8 in Otto and Day 2007).
+    We concentrate on small perturbations, that is, the concept of **local stability** (see [notebook on stability analysis](stability.md) or ch. 8 in Otto and Day 2007).
 
     Let's perturbe the equilibrium and check what the values of the ODE are.
     """)
@@ -530,7 +530,7 @@ def _(mo):
 
 @app.cell
 def _(b, d, h, plt, solve_plot, xy_2, xystar, ε):
-    solve_plot(*xy_2[:, -1], tmax=1500, b=b, h=h, ε=ε, d=d)
+    solve_plot(*xy_2[:, -1], tmax=15000, b=b, h=h, ε=ε, d=d)
     plt.plot(*xystar, 'or')
     plt.gcf()
     return
@@ -545,7 +545,7 @@ def _(mo):
 
     This linearization is given by the the Jacobian at the equiblirum $(x^*, y^*)$.
 
-    **The equilibrium is stable if all eigenvalues of the linear system have negative real parts.** (see [notebook on stability analysis](stability.py) or ch. 8 in Otto and Day 2007).
+    **The equilibrium is stable if all eigenvalues of the linear system have negative real parts.** (see [notebook on stability analysis](stability.md) or ch. 8 in Otto and Day 2007).
 
     For more details see references at the bottom of the page.
     """)
