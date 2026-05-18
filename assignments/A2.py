@@ -305,6 +305,37 @@ def _(plt, ricker):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    # Bonus: Interactive exploration of the logistic map
+
+    The static plots above show only 5 values of $r$. The really interesting behavior — period-doubling and the route to chaos — happens at very specific values, so to *see* the transition it's much more illuminating to drag a slider through the range and watch the dynamics update.
+
+    **Build an interactive plot using marimo widgets:**
+
+    1. In the first cell below, create an `mo.ui.slider` for $r$ over the range $[0.1, 4.0]$ with a small step (e.g. `0.01`). Assign it to `r_ui` and display it.
+    1. In the second cell, use `r_ui.value` to call `logistic(0.1, r_ui.value, 100)` and plot $N_t$ vs $t$.
+
+    Drag the slider through the range. Around what value of $r$ does the fixed point become unstable? Where does a 2-cycle appear? When does chaos set in?
+
+    See the slider examples in `notebooks/predator-prey.py`.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    # your code here: create an mo.ui.slider named `r_ui` and display it
+    return
+
+
+@app.cell
+def _(logistic, plt):
+    # your code here: use r_ui.value to run logistic(0.1, r_ui.value, 100) and plot
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     __end of assignment__
     """)
     return
