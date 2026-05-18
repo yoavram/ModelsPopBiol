@@ -64,7 +64,9 @@ def _(mo):
     Therefore, we can write the model as
 
     $$
-    S_{t+1} = S_t - \beta S_t \frac{I_t}{N} + \gamma I_t $$$$
+    S_{t+1} = S_t - \beta S_t \frac{I_t}{N} + \gamma I_t
+    $$
+    $$
     I_{t+1} = I_t + \beta S_t \frac{I_t}{N} - \gamma I_t
     $$
 
@@ -322,13 +324,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo):
-    # your code here: create an mo.ui.slider named `r_ui` and display it
-    return
-
-
-@app.cell
-def _(logistic, plt):
+def _():
     # your code here: use r_ui.value to run logistic(0.1, r_ui.value, 100) and plot
     return
 
