@@ -41,11 +41,13 @@ Cell layout, mirroring A1:
 - Last cell is the `__end of assignment__` markdown marker.
 
 Grading markers (project-specific):
-- Lines ending with `###` and cells starting with `###` are used by the autograder — preserve them exactly in BOTH the assignment skeleton AND the solution.
+- Lines ending with `###` and cells starting with `###` are used by the autograder — preserve them exactly in BOTH the assignment skeleton AND the solution whenever possible.
 - New widget / bonus cells that can't be tested with assertions should be left ungraded (no `###` markers) and clearly labeled "Bonus".
+- The `###` rule sometimes has to bend for marimo's uniqueness rule (see below). When you rename a `def`-`###` line or prefix a `###`-marked unpacking with `_`, the autograder's tests must be updated to use the new names. Migration is a one-time trade: marimo loadability wins over keeping `###` lines untouched.
 
 Marimo-specific gotchas:
-- **All top-level names must be unique across cells.** If the Jupyter source has two `def ode(...)` cells, marimo raises `MultipleDefinitionError` at app load. Rename or alias one (e.g. `ode_crossfeed = ode`) so each cell exports a distinct global.
+- **All top-level names must be unique across cells.** If the Jupyter source has two `def ode(...)` cells, marimo raises `MultipleDefinitionError` at app load. Rename one at the def site (e.g. `def ode_crossfeed(...)`). An alias like `ode_crossfeed = ode` does **not** fix this — marimo's static analyzer still flags `def ode` as a top-level binding even when only the alias is returned.
+- For tuple unpacking that creates many globals (e.g. `δ1, δ2, β, ρ = np.random.uniform(...)`) and only uses them within one cell, prefix all names with `_` (`_δ1, _δ2, _β, _ρ = ...`) to make them cell-private. Do this in both the assignment skeleton and the solution so they match.
 - For-loop / unpacking variables become cell-level globals; if they would collide with another cell's globals, prefix them with `_` (private to the cell).
 - Drop IPython magics (`%matplotlib inline`, `%%time`, etc.) — they are not valid Python and marimo doesn't recognize them.
 - The linter may hoist pure-function cells to `@app.function`; that's fine, don't fight it. It also rewrites `__generated_with` on save — leave the version string alone.
