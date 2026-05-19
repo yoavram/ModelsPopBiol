@@ -76,7 +76,7 @@ def _(mo):
 
 @app.cell
 def _():
-    def ode(t, x): ###
+    def ode_crossfeed(t, x): ###
         n1, n2, g, a = x
 
         dn1dt = (
@@ -94,7 +94,6 @@ def _():
 
         return [dn1dt, dn2dt, dgdt, dadt] ###
 
-    ode_crossfeed = ode
     return (ode_crossfeed,)
 
 
@@ -198,10 +197,10 @@ def _():
 
 @app.cell
 def _(ode, partial, solve_ivp, plt):
-    δ1, δ2, β, ρ = 0.5, 0.5, 0.8, 0.4 ###
-    ode1 = partial(ode, δ1=δ1, δ2=δ2, β=β, ρ=ρ) ###
-    δ1, δ2, β, ρ = 0.5, 0.5, 0.8, 0.6 ###
-    ode2 = partial(ode, δ1=δ1, δ2=δ2, β=β, ρ=ρ) ###
+    _δ1, _δ2, _β, _ρ = 0.5, 0.5, 0.8, 0.4 ###
+    ode1 = partial(ode, δ1=_δ1, δ2=_δ2, β=_β, ρ=_ρ) ###
+    _δ1, _δ2, _β, _ρ = 0.5, 0.5, 0.8, 0.6 ###
+    ode2 = partial(ode, δ1=_δ1, δ2=_δ2, β=_β, ρ=_ρ) ###
 
     # write code here
     return ode1, ode2
@@ -225,9 +224,9 @@ def _(mo):
 
 @app.cell
 def _(np, ode):
-    δ1, δ2, β, ρ = np.random.uniform(0, 1, size=(4, 1000)) ###
+    _δ1, _δ2, _β, _ρ = np.random.uniform(0, 1, size=(4, 1000)) ###
     x_star = None  # write code here
-    np.allclose(ode(0, x_star, δ1, δ2, β, ρ).T, x_star) ###
+    np.allclose(ode(0, x_star, _δ1, _δ2, _β, _ρ).T, x_star) ###
     return
 
 
