@@ -31,6 +31,37 @@
 - Use `fig` when a figure object already exists (for example after `fig, ax = plt.subplots(...)`).
 - Do not use `plt.show()` for notebook output (it targets the console area).
 
+## Migrating Jupyter Notebooks To Marimo
+Sources for student assignments live in the sibling repo `../ModelsPopBiolSol/2023/{assignments,solutions}/A*.ipynb`; targets are `{assignments,solutions}/A*.py`. Use a previously migrated assignment (`assignments/A1.py`, `solutions/A1.py`) as the structural reference.
+
+Cell layout, mirroring A1:
+- A single `@app.cell` imports cell first: `import marimo as mo`, `matplotlib.pyplot as plt`, `numpy as np`, plus per-notebook libs; returns its imports tuple.
+- Title and "General instructions" markdown cells using `@app.cell(hide_code=True)` + `mo.md(r"""...""")`.
+- One markdown prompt cell + one code cell per exercise step. For the assignment skeleton leave `# your code here`; for the solution, fill the body.
+- Last cell is the `__end of assignment__` markdown marker.
+
+Grading markers (project-specific):
+- Lines ending with `###` and cells starting with `###` are used by the autograder — preserve them exactly in BOTH the assignment skeleton AND the solution.
+- New widget / bonus cells that can't be tested with assertions should be left ungraded (no `###` markers) and clearly labeled "Bonus".
+
+Marimo-specific gotchas:
+- **All top-level names must be unique across cells.** If the Jupyter source has two `def ode(...)` cells, marimo raises `MultipleDefinitionError` at app load. Rename or alias one (e.g. `ode_crossfeed = ode`) so each cell exports a distinct global.
+- For-loop / unpacking variables become cell-level globals; if they would collide with another cell's globals, prefix them with `_` (private to the cell).
+- Drop IPython magics (`%matplotlib inline`, `%%time`, etc.) — they are not valid Python and marimo doesn't recognize them.
+- The linter may hoist pure-function cells to `@app.function`; that's fine, don't fight it. It also rewrites `__generated_with` on save — leave the version string alone.
+
+Widgets:
+- Reference pattern lives in `notebooks/predator-prey.py` (sliders, dropdowns, `mo.vstack` / `mo.hstack` for layout).
+- Put widget *creation* in one cell and *consumption* (`widget.value`) in another so reactivity updates only the consumer cell, not the widget itself.
+
+Verification:
+- `pixi run marimo-check <file>` — warnings on empty stub cells and single-line markdown indentation are expected; structural errors (multi-def, syntax) are not.
+- `pixi run python solutions/<X>.py` end-to-end smoke-tests the solution.
+- The assignment file will error mid-run because stub functions return `None`; that's expected — the relevant check is that the marimo app *loads* without `MultipleDefinitionError`.
+
+Publishing:
+- Add a `materials:` field in `www/content/calendar/<ID>/contents.lr` pointing to the GitHub URL of the `.py` (e.g. `https://github.com/yoavram/ModelsPopBiol/blob/master/assignments/A2.py`).
+
 ## Testing Guidelines
 - No automated unit suite. For notebooks, run all cells to completion (Kernel → Restart & Run All) and confirm figures render with current dependencies.
 - For site changes, run `lektor build` and spot-check in `lektor serve`: navigation, dated items, external links, and `/static/` assets on mobile and desktop widths.
