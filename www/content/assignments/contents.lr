@@ -10,7 +10,7 @@ Solutions will be published on the [Calendar](/calendar) page as soon as possibl
 
 ### Grades
   
-- The final assignments grade will be the average of the 3 best grades out of the 4 assignments: `assignments_grade = sum(sorted(grades)[1:]) / 3`. 
+- The final assignments grade will be the average of the 4 best grades out of the 5 assignments: `assignments_grade = sum(sorted(grades)[1:]) / 4`. 
 - Assignment #0 will not be graded.
 - The final assignments grade will determine 20% of the course grade: `final_grade = int(0.2 * assignments_grade + 0.8 * project_grade)`.
 - Specifically, you can submit only 3 assignments and still get the maximum 20 points.
@@ -26,7 +26,7 @@ The due dates for all assignments are on the <a href="calendar.html">Calendar</a
 - All students have 3 free "late days" for the semester.
 - Submissions are timestamped by their calendar date in Israel; for a deadline on Thursday, a submission on Friday at 00:20 (or even 00:02) counts for a full "late day".
 - You may not submit assignments after exausting these "late days".
-- Exceptions per TAU policy: reserve duty, pregnancy, illness, etc. See official TAU rules.
+- Exceptions per university policy: reserve duty, pregnancy, illness, etc. See official university rules.
 - You may not use "late days" for the final project.
 
 ### Submission instructions
