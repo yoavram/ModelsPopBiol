@@ -26,6 +26,12 @@ def _():
     return blue, green, mo, np, plt, red, scipy, sns
 
 
+@app.cell
+def _(np):
+    rng = np.random.default_rng(1202)
+    return (rng,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -84,27 +90,26 @@ def _(mo):
 
 
 @app.cell
-def _(np):
-    _rng = np.random.default_rng(1202)
+def _(rng):
     μ = 10
     # expected number of mites on a leaf
-    n = 150
+    n_poi = 150
     # number of measurements
     # n measurements of the mites
-    X = _rng.poisson(μ, size=n)
-    return X, n, μ
+    X_poi = rng.poisson(μ, size=n_poi)
+    return X_poi, n_poi, μ
 
 
 @app.cell
-def _(X, n, np, plt, red, sns, μ):
+def _(X_poi, n_poi, np, plt, red, sns, μ):
     _fig, _axes = plt.subplots(1, 2, figsize=(8, 4))
     _ax = _axes[0]
-    _ax.plot(np.arange(n), X, '.k')
+    _ax.plot(np.arange(n_poi), X_poi, '.k')
     _ax.axhline(μ, linewidth=3, color=red)
     _ax.set_xlabel('Leaf, $i$')
     _ax.set_ylabel('# Mites, $X_i$')
     _ax = _axes[1]
-    _ax.hist(X, bins=10, density=True)
+    _ax.hist(X_poi, bins=10, density=True)
     _ax.axvline(μ, linewidth=3, alpha=1, color=red)
     _ax.set_ylabel('Density')
     _ax.set_xlabel('# Mites, $X_i$')
@@ -175,10 +180,10 @@ def _(mo):
 @app.cell
 def _(np, scipy):
     @np.vectorize(excluded=(1,))
-    def log_likelihood(μ, X):
+    def log_likelihood_poi(μ, X):
          return scipy.stats.poisson(μ).logpmf(X).sum()
 
-    return (log_likelihood,)
+    return (log_likelihood_poi,)
 
 
 @app.cell(hide_code=True)
@@ -190,14 +195,14 @@ def _(mo):
 
 
 @app.cell
-def _(X, blue, log_likelihood, np, plt, red, sns, μ):
-    _μ_range = np.linspace(X.min(), X.max(), 100)
-    _logliks = log_likelihood(_μ_range, X)
-    μ_hat = _μ_range[_logliks.argmax()]
-    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat))
+def _(X_poi, blue, log_likelihood_poi, np, plt, red, sns, μ):
+    _μ_range = np.linspace(X_poi.min(), X_poi.max(), 100)
+    _logliks = log_likelihood_poi(_μ_range, X_poi)
+    μ_hat_range = _μ_range[_logliks.argmax()]
+    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat_range))
     plt.plot(_μ_range, _logliks, color='k')
     plt.axvline(μ, color=red, label='$\\mu$')
-    plt.axvline(μ_hat, color=blue, label='$\\hat{\\mu}$')
+    plt.axvline(μ_hat_range, color=blue, label='$\\hat{\\mu}$')
     plt.xlabel('# Mites, $\\mu$')
     plt.ylabel('Log-likelihood')
     plt.legend()
@@ -244,20 +249,20 @@ def _(mo):
 
 
 @app.cell
-def _(X, blue, log_likelihood, np, plt, red, sns, μ):
-    μ_hat_1 = X.mean()
-    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat_1))
-    _μ_range = np.linspace(X.min(), X.max(), 100)
-    _logliks = log_likelihood(_μ_range, X)
+def _(X_poi, blue, log_likelihood_poi, np, plt, red, sns, μ):
+    μ_hat_mean = X_poi.mean()
+    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat_mean))
+    _μ_range = np.linspace(X_poi.min(), X_poi.max(), 100)
+    _logliks = log_likelihood_poi(_μ_range, X_poi)
     plt.plot(_μ_range, _logliks, color='k')
     plt.axvline(μ, color=red, label='$\\mu$')
-    plt.axvline(μ_hat_1, color=blue, label='$\\bar{X}$')
+    plt.axvline(μ_hat_mean, color=blue, label='$\\bar{X}$')
     plt.xlabel('# Mites, $\\mu$')
     plt.ylabel('Log-likelihood')
     plt.legend()
     sns.despine()
     plt.gcf()
-    return (μ_hat_1,)
+    return (μ_hat_mean,)
 
 
 @app.cell(hide_code=True)
@@ -308,17 +313,17 @@ def _(mo):
 
 
 @app.cell
-def _(X, blue, log_likelihood, n, np, plt, red, sns, μ, μ_hat_1):
-    _σ_hat = np.sqrt(μ_hat_1 / n)
-    print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_1, _σ_hat))
-    _μ_range = np.linspace(μ_hat_1 - 2, μ_hat_1 + 2, 100)
-    _logliks = log_likelihood(_μ_range, X)
+def _(X_poi, blue, log_likelihood_poi, n_poi, np, plt, red, sns, μ, μ_hat_mean):
+    _σ_hat = np.sqrt(μ_hat_mean / n_poi)
+    print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_mean, _σ_hat))
+    _μ_range = np.linspace(μ_hat_mean - 2, μ_hat_mean + 2, 100)
+    _logliks = log_likelihood_poi(_μ_range, X_poi)
     plt.plot(_μ_range, _logliks, color='k')
     plt.axvline(μ, color=red, label='$\\mu$')
-    plt.axvline(μ_hat_1, color=blue, label='$\\bar{X}$')
-    _μ_range = np.linspace(μ_hat_1 - _σ_hat, μ_hat_1 + _σ_hat)
-    _logliks = log_likelihood(_μ_range, X)
-    plt.fill_between(_μ_range, log_likelihood(μ_hat_1 - 2, X), _logliks, alpha=0.5, label='$\\pm \\sigma_{\\hat{\\mu}}$')
+    plt.axvline(μ_hat_mean, color=blue, label='$\\bar{X}$')
+    _μ_range = np.linspace(μ_hat_mean - _σ_hat, μ_hat_mean + _σ_hat)
+    _logliks = log_likelihood_poi(_μ_range, X_poi)
+    plt.fill_between(_μ_range, log_likelihood_poi(μ_hat_mean - 2, X_poi), _logliks, alpha=0.5, label='$\\pm \\sigma_{\\hat{\\mu}}$')
     plt.xlabel('# Mites, $\\mu$')
     plt.ylabel('Log-likelihood')
     plt.legend(loc='lower right')
@@ -340,8 +345,8 @@ def _(mo):
 
 
 @app.cell
-def _(X):
-    print(X.mean(), X.var(ddof=1))
+def _(X_poi):
+    print(X_poi.mean(), X_poi.var(ddof=1))
     return
 
 
@@ -375,7 +380,7 @@ def _(np, scipy):
 
 
 @app.cell
-def _(X, chitest, green, np, plt, scipy, sns, μ_hat_1):
+def _(X_poi, chitest, green, np, plt, scipy, sns, μ_hat_mean):
     def goodness_of_fit_poisson(μ_hat, X):
         poisson = scipy.stats.poisson(μ_hat)
         χ2, pval = chitest(X, poisson, 1)
@@ -389,7 +394,7 @@ def _(X, chitest, green, np, plt, scipy, sns, μ_hat_1):
         _ax.set_xlabel('# Mites, $X_i$')
         _fig.tight_layout()
         sns.despine()
-    goodness_of_fit_poisson(μ_hat_1, X)
+    goodness_of_fit_poisson(μ_hat_mean, X_poi)
     plt.gcf()
     return (goodness_of_fit_poisson,)
 
@@ -424,12 +429,12 @@ def _(mo):
 
 @app.cell
 def _(np, plt):
-    X_1 = np.loadtxt('../data/mites.csv', delimiter=',')
-    plt.hist(X_1)
+    X_mites = np.loadtxt('../data/mites.csv', delimiter=',')
+    plt.hist(X_mites)
     plt.xlabel('# Mites on leaf')
     plt.ylabel('# leaves')
     plt.gcf()
-    return (X_1,)
+    return (X_mites,)
 
 
 @app.cell(hide_code=True)
@@ -441,12 +446,12 @@ def _(mo):
 
 
 @app.cell
-def _(X_1, n, np):
-    μ_hat_2 = X_1.mean()
-    _σ_hat = np.sqrt(μ_hat_2 / n)
-    print('μ_hat = {:.4f} +/- {:.4f}'.format(μ_hat_2, _σ_hat))
-    print('Avg(X)' + '={:.4f}, Var(X)={:.4f}'.format(X_1.mean(), X_1.var(ddof=1)))
-    return (μ_hat_2,)
+def _(X_mites, np):
+    μ_hat_mites = X_mites.mean()
+    _σ_hat = np.sqrt(μ_hat_mites / X_mites.size)
+    print('μ_hat = {:.4f} +/- {:.4f}'.format(μ_hat_mites, _σ_hat))
+    print('Avg(X)' + '={:.4f}, Var(X)={:.4f}'.format(X_mites.mean(), X_mites.var(ddof=1)))
+    return (μ_hat_mites,)
 
 
 @app.cell(hide_code=True)
@@ -458,8 +463,8 @@ def _(mo):
 
 
 @app.cell
-def _(X_1, goodness_of_fit_poisson, μ_hat_2):
-    goodness_of_fit_poisson(μ_hat_2, X_1)
+def _(X_mites, goodness_of_fit_poisson, μ_hat_mites):
+    goodness_of_fit_poisson(μ_hat_mites, X_mites)
     return
 
 
@@ -497,25 +502,24 @@ def _(mo):
 
 
 @app.cell
-def _(np):
-    _rng = np.random.default_rng(4222)
-    n_1 = 150
+def _(rng):
+    n_gamma = 150
     θ = r, φ = (5, 2)
-    μi = _rng.gamma(r, scale=φ, size=n_1)
-    X_2 = _rng.poisson(μi)
-    return X_2, n_1, r, θ, φ
+    _μi = rng.gamma(r, scale=φ, size=n_gamma)
+    X_gamma = rng.poisson(_μi)
+    return X_gamma, n_gamma, r, θ, φ
 
 
 @app.cell
-def _(X_2, n_1, np, plt, r, red, sns, φ):
+def _(X_gamma, n_gamma, np, plt, r, red, sns, φ):
     _fig, _axes = plt.subplots(1, 2, figsize=(8, 4))
     _ax = _axes[0]
-    _ax.plot(np.arange(n_1), X_2, '.k')
+    _ax.plot(np.arange(n_gamma), X_gamma, '.k')
     _ax.axhline(r * φ, linewidth=3, color=red)
     _ax.set_xlabel('Measurement, $i$')
     _ax.set_ylabel('Count, $X_i$')
     _ax = _axes[1]
-    _ax.hist(X_2, bins=10, density=True)
+    _ax.hist(X_gamma, bins=10, density=True)
     _ax.axvline(r * φ, linewidth=3, alpha=1, color=red)
     _ax.set_ylabel('Density')
     _ax.set_xlabel('Count, $X_i$')
@@ -536,8 +540,8 @@ def _(mo):
 
 
 @app.cell
-def _(X_2, goodness_of_fit_poisson):
-    goodness_of_fit_poisson(X_2.mean(), X_2)
+def _(X_gamma, goodness_of_fit_poisson):
+    goodness_of_fit_poisson(X_gamma.mean(), X_gamma)
     return
 
 
@@ -585,14 +589,14 @@ def _(mo):
 
 
 @app.cell
-def _(X_2, np, scipy, θ):
+def _(X_gamma, np, scipy, θ):
     @np.vectorize(signature='(2)->()', excluded=(1,))
-    def log_likelihood_1(θ, X):
+    def log_likelihood_negbin(θ, X):
         r, φ = θ
         p = φ / (φ + 1)
         return scipy.stats.nbinom(r, p).logpmf(X).sum()
-    print(log_likelihood_1(θ, X_2))
-    return (log_likelihood_1,)
+    print(log_likelihood_negbin(θ, X_gamma))
+    return (log_likelihood_negbin,)
 
 
 @app.cell(hide_code=True)
@@ -606,23 +610,23 @@ def _(mo):
 
 
 @app.cell
-def _(X_2, log_likelihood_1, θ):
+def _(X_gamma, log_likelihood_negbin, θ):
     def neg_log_likelihood(θ, X):
-        return -log_likelihood_1(θ, X)
-    neg_log_likelihood(θ, X_2)
+        return -log_likelihood_negbin(θ, X)
+    neg_log_likelihood(θ, X_gamma)
     return (neg_log_likelihood,)
 
 
 @app.cell
-def _(X_2, neg_log_likelihood, r, scipy, φ):
+def _(X_gamma, neg_log_likelihood, r, scipy, φ):
     def mle(X, verbose=False, full_path=False):
         r_guess = X.mean()
         φ_guess = r_guess * r_guess / (X.var(ddof=1) - r_guess)  # eq 3 in Bliss and Fisher 1953
         return scipy.optimize.fmin(func=neg_log_likelihood, x0=(r_guess, φ_guess), args=(X,), disp=verbose, retall=full_path)
-    θ_hat = mle(X_2, verbose=True)
-    r_hat, φ_hat = θ_hat  # function to minimize with respect to first argument
-    print('r = {} \tr_hat = {:.4f}\nϕ = {}\tϕ_hat = {:.4f}'.format(r, r_hat, φ, φ_hat))  # initial guess  # additional arguments to func  # no prints
-    return mle, r_hat, θ_hat, φ_hat
+    θ_hat_gamma = mle(X_gamma, verbose=True)
+    r_hat_gamma, φ_hat_gamma = θ_hat_gamma  # function to minimize with respect to first argument
+    print('r = {} \tr_hat = {:.4f}\nϕ = {}\tϕ_hat = {:.4f}'.format(r, r_hat_gamma, φ, φ_hat_gamma))  # initial guess  # additional arguments to func  # no prints
+    return mle, r_hat_gamma, θ_hat_gamma, φ_hat_gamma
 
 
 @app.cell(hide_code=True)
@@ -635,26 +639,26 @@ def _(mo):
 
 @app.cell
 def _(np):
-    r_range = np.linspace(4, 8, 100)
-    ϕ_range = np.linspace(0.2, 2.5, 101)
-    θ_range = np.array([[(r_, ϕ_) for r_ in r_range] for ϕ_ in ϕ_range])
-    return r_range, θ_range, φ_range
+    r_range_gamma = np.linspace(4, 8, 100)
+    φ_range_gamma = np.linspace(0.2, 2.5, 101)
+    θ_range_gamma = np.array([[(_r, _φ) for _r in r_range_gamma] for _φ in φ_range_gamma])
+    return r_range_gamma, θ_range_gamma, φ_range_gamma
 
 
 @app.cell
-def _(X_2, log_likelihood_1, θ_range):
+def _(X_gamma, log_likelihood_negbin, θ_range_gamma):
     # magic command not supported in marimo; please file an issue to add support
     # %%time
-    ll = log_likelihood_1(θ_range, X_2)
-    return (ll,)
+    ll_gamma = log_likelihood_negbin(θ_range_gamma, X_gamma)
+    return (ll_gamma,)
 
 
 @app.cell
-def _(green, ll, plt, r, r_hat, r_range, red, φ, φ_hat, φ_range):
-    _im = plt.pcolormesh(r_range, ϕ_range, ll, cmap='viridis')
+def _(green, ll_gamma, plt, r, r_hat_gamma, r_range_gamma, red, φ, φ_hat_gamma, φ_range_gamma):
+    _im = plt.pcolormesh(r_range_gamma, φ_range_gamma, ll_gamma, cmap='viridis')
     plt.colorbar(_im, label='Log-likelihood')
     plt.plot(r, φ, '.', color=red, label='truth')
-    plt.plot(r_hat, φ_hat, '.', color=green, label='estimate')
+    plt.plot(r_hat_gamma, φ_hat_gamma, '.', color=green, label='estimate')
     plt.legend()
     plt.xlabel('r')
     plt.ylabel('ϕ')
@@ -673,7 +677,7 @@ def _(mo):
 
 
 @app.cell
-def _(X_2, chitest, green, np, plt, scipy, sns, θ_hat):
+def _(X_gamma, chitest, green, np, plt, scipy, sns, θ_hat_gamma):
     def goodness_of_fit_negbin(θ, X):
         r, φ = θ
         p = φ / (φ + 1)
@@ -689,7 +693,7 @@ def _(X_2, chitest, green, np, plt, scipy, sns, θ_hat):
         _ax.set_xlabel('# Mites, $X_i$')
         _fig.tight_layout()
         sns.despine()
-    goodness_of_fit_negbin(θ_hat, X_2)
+    goodness_of_fit_negbin(θ_hat_gamma, X_gamma)
     plt.gcf()
     return (goodness_of_fit_negbin,)
 
@@ -709,35 +713,25 @@ def _(mo):
 
     Let's try out this over-dispersed Poisson model on our real "mites on leaves" data.
 
-    We reload our data and proceed for the maximum likelihood estimation.
+    We reuse the `X_mites` data loaded above and proceed for the maximum likelihood estimation.
     """)
     return
 
 
 @app.cell
-def _(np, plt):
-    X_3 = np.loadtxt('../data/mites.csv', delimiter=',')
-    plt.hist(X_3)
-    plt.xlabel('# Mites on leaf')
-    plt.ylabel('# leaves')
-    plt.gcf()
-    return (X_3,)
-
-
-@app.cell
-def _(X_3, mle, scipy):
-    θ_hat_1 = mle(X_3, verbose=True)
-    r_hat_1, φ_hat_1 = θ_hat_1
-    negbin_rv = scipy.stats.nbinom(r_hat_1, φ_hat_1 / (φ_hat_1 + 1))
-    print('r_hat = {:.4f}\nϕ_hat = {:.4f}'.format(r_hat_1, φ_hat_1))
-    print('Observed mean: {:.4f}, variance: {:.4f}'.format(X_3.mean(), X_3.var(ddof=1)))
+def _(X_mites, mle, scipy):
+    θ_hat_mites = mle(X_mites, verbose=True)
+    r_hat_mites, φ_hat_mites = θ_hat_mites
+    negbin_rv = scipy.stats.nbinom(r_hat_mites, φ_hat_mites / (φ_hat_mites + 1))
+    print('r_hat = {:.4f}\nϕ_hat = {:.4f}'.format(r_hat_mites, φ_hat_mites))
+    print('Observed mean: {:.4f}, variance: {:.4f}'.format(X_mites.mean(), X_mites.var(ddof=1)))
     print('Expected mean: {:.4f}, variance: {:.4f}'.format(negbin_rv.mean(), negbin_rv.var()))
-    return r_hat_1, θ_hat_1, φ_hat_1
+    return r_hat_mites, θ_hat_mites, φ_hat_mites
 
 
 @app.cell
-def _(X_3, goodness_of_fit_negbin, θ_hat_1):
-    goodness_of_fit_negbin(θ_hat_1, X_3)
+def _(X_mites, goodness_of_fit_negbin, θ_hat_mites):
+    goodness_of_fit_negbin(θ_hat_mites, X_mites)
     return
 
 
@@ -760,26 +754,26 @@ def _(mo):
 
 
 @app.cell
-def _(X_3, mle, np):
-    θ_hat_2, θ_path = mle(X_3, full_path=True)
+def _(X_mites, mle, np):
+    _θ_hat_mites, θ_path = mle(X_mites, full_path=True)
     θ_path = np.array(θ_path)
     return (θ_path,)
 
 
 @app.cell
-def _(X_3, log_likelihood_1, np):
-    r_range_1 = np.linspace(0.5, 2, 100)
-    φ_range_1 = np.linspace(0.5, 2, 101)
-    θ_range_1 = np.array([[(r_, φ_) for r_ in r_range_1] for φ_ in φ_range_1])
-    ll_1 = log_likelihood_1(θ_range_1, X_3)
-    return ll_1, r_range_1, φ_range_1
+def _(X_mites, log_likelihood_negbin, np):
+    r_range_mites = np.linspace(0.5, 2, 100)
+    φ_range_mites = np.linspace(0.5, 2, 101)
+    θ_range_mites = np.array([[(_r, _φ) for _r in r_range_mites] for _φ in φ_range_mites])
+    ll_mites = log_likelihood_negbin(θ_range_mites, X_mites)
+    return ll_mites, r_range_mites, φ_range_mites
 
 
 @app.cell
-def _(green, ll_1, plt, r_hat_1, r_range_1, θ_path, φ_hat_1, φ_range_1):
-    _im = plt.pcolormesh(r_range_1, φ_range_1, ll_1, cmap='viridis')
+def _(green, ll_mites, plt, r_hat_mites, r_range_mites, θ_path, φ_hat_mites, φ_range_mites):
+    _im = plt.pcolormesh(r_range_mites, φ_range_mites, ll_mites, cmap='viridis')
     plt.colorbar(_im, label='Log-likelihood')
-    plt.plot(r_hat_1, φ_hat_1, '.', color=green, label='estimate')
+    plt.plot(r_hat_mites, φ_hat_mites, '.', color=green, label='estimate')
     plt.plot(θ_path[:, 0], θ_path[:, 1], '-', color='k', lw=1)
     plt.xlabel('r')
     plt.ylabel('ϕ')
@@ -812,9 +806,9 @@ def _(mo):
 
 
 @app.cell
-def _(X_3, n_1, np):
+def _(X_mites, rng):
     n_resamples = 1000
-    resamples = np.random.choice(X_3, size=(n_resamples, n_1))
+    resamples = rng.choice(X_mites, size=(n_resamples, X_mites.size))
     return (resamples,)
 
 
@@ -836,9 +830,9 @@ def _(ThreadPoolExecutor, mle, resamples):
 
 @app.cell
 def _(np, θ_bootstrap):
-    θ_bootstrap_1 = np.array(θ_bootstrap)
-    r_bootstrap, φ_bootstrap = θ_bootstrap_1.T
-    return (θ_bootstrap_1,)
+    θ_bootstrap_arr = np.array(θ_bootstrap)
+    _r_bootstrap, _φ_bootstrap = θ_bootstrap_arr.T
+    return (θ_bootstrap_arr,)
 
 
 @app.cell(hide_code=True)
@@ -865,11 +859,11 @@ def _():
 
 
 @app.cell
-def _(corner, green, r_hat_1, θ_bootstrap_1, φ_hat_1):
-    cor = corner(θ_bootstrap_1, smooth=True, labels=['r', 'ϕ'], show_titles=True, range=[(0, 2), (0, 2)])
-    cor.axes[0].axvline(r_hat_1, color=green)
-    cor.axes[3].axvline(φ_hat_1, color=green)
-    cor.axes[2].plot(r_hat_1, φ_hat_1, '.', color=green)
+def _(corner, green, r_hat_mites, θ_bootstrap_arr, φ_hat_mites):
+    cor = corner(θ_bootstrap_arr, smooth=True, labels=['r', 'ϕ'], show_titles=True, range=[(0, 2), (0, 2)])
+    cor.axes[0].axvline(r_hat_mites, color=green)
+    cor.axes[3].axvline(φ_hat_mites, color=green)
+    cor.axes[2].plot(r_hat_mites, φ_hat_mites, '.', color=green)
     cor
     return
 
