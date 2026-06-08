@@ -1,6 +1,13 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "marimo>=0.23.3",
+# ]
+# ///
+
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.6"
 app = marimo.App()
 
 
@@ -56,15 +63,15 @@ def _(mo):
 
     Imagine that we count the number of [European red mites](https://en.wikipedia.org/wiki/Panonychus_ulmi) on apple leaves.
 
-    Denote the number of leaves by $n$, where the $i^{\rm th}$ measurement $X_i$ reports the observed number of mites on leaf $i$.
-    We assume that $X_i$ is Poisson-distributed around the expected number of mites $\mu$,
+    Denote the number of leaves by $n$, where the $i^{\rm th}$ measurement $x_i$ reports the observed number of mites on leaf $i$.
+    We assume that $x_i$ is Poisson-distributed around the expected number of mites $\mu$,
     $$
-    X_i \sim Poi(\mu)
+    x_i \sim Poi(\mu)
     $$
 
-    So $Poi(\mu)$ is our **model**, and $\{X_i\}$ is the data.
+    So $Poi(\mu)$ is our **model**, and $X=\{x_i\}_{i=1}^{n}$ is the data.
 
-    The question is, given this data $\{X_i\}$, what is our best estimate of $\mu$?
+    The question is, given this data $X$, **what is our best estimate of $\mu$?**
     And the next question would be: does the model provide a good fit to the data?
 
     Generating this estimate is the objective of **statistical inference**: making conclusions on observable phenomea by applying mathematical methods to data and models.
