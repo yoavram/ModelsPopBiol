@@ -356,9 +356,9 @@ def _(mo):
 
 
 @app.cell
-def _(X_poi, μ_hat):
+def _(X_poi, μ_hat_mean):
     print(X_poi.mean(), X_poi.var(ddof=1))
-    μ_hat
+    μ_hat_mean
     return
 
 
@@ -371,9 +371,9 @@ def _(mo):
 
 
 @app.cell
-def _(X_poi, n_poi, np, plt, rng, μ_hat_mean):
-
-    _X_syn = rng.poisson(μ_hat_mean, size=(10000, n_poi))
+def _(X_poi, n_poi, np, plt, μ_hat_mean):
+    _rng = np.random.default_rng(0)
+    _X_syn = _rng.poisson(μ_hat_mean, size=(10000, n_poi))
     _ratio = _X_syn.mean(axis=1) / _X_syn.var(axis=1, ddof=1)
     _low, _high = np.percentile(_ratio, [2.5, 97.5])
     plt.hist(_ratio, bins=30, density=True)
@@ -498,8 +498,9 @@ def _(mo):
 
 
 @app.cell
-def _(X_mites, n_poi, np, plt, rng, μ_hat_mites):
-    _X_syn = rng.poisson(μ_hat_mites, size=(10000, n_poi))
+def _(X_mites, n_poi, np, plt, μ_hat_mites):
+    _rng = np.random.default_rng(0)
+    _X_syn = _rng.poisson(μ_hat_mites, size=(10000, n_poi))
     _ratio = _X_syn.mean(axis=1) / _X_syn.var(axis=1, ddof=1)
     _low, _high = np.percentile(_ratio, [2.5, 97.5])
     plt.hist(_ratio, bins=30, density=True)
@@ -561,11 +562,12 @@ def _(mo):
 
 
 @app.cell
-def _(rng):
+def _(np):
+    _rng = np.random.default_rng(87)
     n_gamma = 150
     θ = r, φ = (5, 2)
-    _μi = rng.gamma(r, scale=φ, size=n_gamma)
-    X_gamma = rng.poisson(_μi)
+    _μi = _rng.gamma(r, scale=φ, size=n_gamma)
+    X_gamma = _rng.poisson(_μi)
     return X_gamma, n_gamma, r, θ, φ
 
 
@@ -625,9 +627,9 @@ def _(mo):
     mo.md(r"""
     Interestingly, this compound model gives rise to the [Negative Binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution#Statistical_inference), such that
     $$
-    x_i \sim NB(r, p) = Gamma\left(r, \frac{p}{1-p}\right)
+    x_i \sim NB(r, p) = Gamma\left(r, \frac{1-p}{p}\right)
     $$
-    and $p=\frac{\phi}{\phi+1}$.
+    and $p=\frac{1}{\phi+1}$.
 
     The likelihood function is therefore given by the negative binomial distribution,
 
@@ -642,7 +644,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    We therefore implement `log_likelihood(θ, X)`, where $\theta = (r, \phi)$ , $p=\phi/(\phi+1)$, and `X` is the data.
+    We therefore implement `log_likelihood(θ, X)`, where $\theta = (r, \phi)$ , $p=1/(\phi+1)$, and `X` is the data.
     """)
     return
 
@@ -652,7 +654,7 @@ def _(X_gamma, np, scipy, θ):
     @np.vectorize(signature='(2)->()', excluded=(1,))
     def log_likelihood_negbin(θ, X):
         r, φ = θ
-        p = φ / (φ + 1)
+        p = 1 / (φ + 1)
         return scipy.stats.nbinom(r, p).logpmf(X).sum()
     print(log_likelihood_negbin(θ, X_gamma))
     return (log_likelihood_negbin,)
@@ -679,8 +681,8 @@ def _(X_gamma, log_likelihood_negbin, θ):
 @app.cell
 def _(X_gamma, neg_log_likelihood, r, scipy, φ):
     def mle(X, verbose=False, full_path=False):
-        r_guess = X.mean()
-        φ_guess = r_guess * r_guess / (X.var(ddof=1) - r_guess)  # eq 3 in Bliss and Fisher 1953
+        r_guess = X.mean() ** 2 / (X.var(ddof=1) - X.mean())  # eq 3 in Bliss and Fisher 1953
+        φ_guess = X.mean() / r_guess
         return scipy.optimize.fmin(func=neg_log_likelihood, x0=(r_guess, φ_guess), args=(X,), disp=verbose, retall=full_path)
     θ_hat_gamma = mle(X_gamma, verbose=True)
     r_hat_gamma, φ_hat_gamma = θ_hat_gamma  # function to minimize with respect to first argument
@@ -748,7 +750,7 @@ def _(mo):
 def _(X_gamma, chitest, green, np, plt, scipy, sns, θ_hat_gamma):
     def goodness_of_fit_negbin(θ, X):
         r, φ = θ
-        p = φ / (φ + 1)
+        p = 1 / (φ + 1)
         nbinom = scipy.stats.nbinom(r, p)
         χ2, pval = chitest(X, nbinom, 2)
         print('χ2 = {:.2f}, P-value = {:.2g}'.format(χ2, pval))
@@ -790,7 +792,7 @@ def _(mo):
 def _(X_mites, mle, scipy):
     θ_hat_mites = mle(X_mites, verbose=True)
     r_hat_mites, φ_hat_mites = θ_hat_mites
-    negbin_rv = scipy.stats.nbinom(r_hat_mites, φ_hat_mites / (φ_hat_mites + 1))
+    negbin_rv = scipy.stats.nbinom(r_hat_mites, 1 / (φ_hat_mites + 1))
     print('r_hat = {:.4f}\nϕ_hat = {:.4f}'.format(r_hat_mites, φ_hat_mites))
     print('Observed mean: {:.4f}, variance: {:.4f}'.format(X_mites.mean(), X_mites.var(ddof=1)))
     print('Expected mean: {:.4f}, variance: {:.4f}'.format(negbin_rv.mean(), negbin_rv.var()))
