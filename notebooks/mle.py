@@ -146,7 +146,7 @@ def _(mo):
     given observed data $X = \{x_i\}_i$ is the probability of seeing data given the model:
 
     $$
-    \mathcal{L}(\mu~|~X) =
+    P(X~|~\mu) =
     \prod_{i=1}^n P(x_i~|~\mu)
     $$
 
@@ -158,11 +158,11 @@ def _(mo):
     \frac{\mu^{x_i} e^{-\mu}}{x_i!}
     $$
 
-    So the likelihood $\mathcal{L}$ is a product of exponents.
-    Therefore, we take the log-likelihood $\log\mathcal{L}$:
+    So the likelihood $P(X~|~\mu)$ is a product of exponents.
+    Therefore, we take the log-likelihood $\log{P(X~|~\mu)}$:
 
     $$
-    \log\mathcal{L}(\mu~|~X) =
+    \log{P(X~|~\mu)} =
     \sum_{i=1}^n \log{P(x_i~|~\mu)}
     $$
     """)
@@ -179,7 +179,7 @@ def _(mo):
 
 @app.cell
 def _(np, scipy):
-    @np.vectorize(excluded=(1,))
+    @np.vectorize(excluded=(1,)) # excluded=(1,) means that the second argument (X) is not vectorized and is passed as is to the function
     def log_likelihood_poi(μ, X):
          return scipy.stats.poisson(μ).logpmf(X).sum()
 
@@ -239,11 +239,11 @@ def _(mo):
     So
 
     $$
-    \frac{d\log\mathcal{L}}{d\hat{\mu}} = 0 \Rightarrow
+    \frac{d\log\mathcal{L}}{d{\mu}}(\hat{\mu}) = 0 \Rightarrow
     \hat{\mu} = \frac{1}{n}\sum_{i=1}^n{x_i}
     $$
 
-    So the estimate $\hat{\mu}$ is the **arithmetic mean** $\bar{X}=\frac{1}{n}\sum_{i=1}^n{x_i}$!
+    So the estimate $\hat{\mu}$ is the **arithmetic mean** $\bar{X}=\frac{1}{n}\sum_{i=1}^n{x_i}$.
     """)
     return
 
@@ -283,7 +283,7 @@ def _(mo):
     where $\mathcal{I}$ is Fisher information, defined as:
 
     $$
-    \mathcal{I} = - \mathbf{E}\Big[\frac{d^2\log\mathcal{L}}{d\hat{\mu}^2} \Big]
+    \mathcal{I} = - \mathbf{E}\Big[\frac{d^2\log P(X~|~\mu)}{d{\mu}^2}(\hat{\mu}) \Big]
     $$
     """)
     return
@@ -295,10 +295,10 @@ def _(mo):
     So, we have
 
     $$
-    \frac{d\log\mathcal{L}}{d\hat{\mu}} =
-    \frac{1}{\hat{\mu}} \sum_{i=1}^n{x_i} - n \Rightarrow \\
-    \frac{d^2\log\mathcal{L}}{d\hat{\mu}^2}  =
-    -\frac{1}{\hat{\mu}^2} \sum_{i=1}^n{x_i} \Rightarrow \\
+    \frac{d\log P(X~|~\mu)}{d{\mu}} =
+    \frac{1}{{\mu}} \sum_{i=1}^n{x_i} - n \Rightarrow \\
+    \frac{d^2\log P(X~|~\mu)}{d{\mu}^2}  =
+    -\frac{1}{{\mu}^2} \sum_{i=1}^n{x_i} \Rightarrow \\
     \mathcal{I} = - \mathbf{E}\Big[-\frac{1}{\hat{\mu}^2} \sum_{i=1}^n{x_i} \Big] =
     \frac{1}{\hat{\mu}^2} \mathbf{E}\Big[ \sum_{i=1}^n{x_i} \Big] =
     \frac{n}{\hat{\mu}}
@@ -313,7 +313,18 @@ def _(mo):
 
 
 @app.cell
-def _(X_poi, blue, log_likelihood_poi, n_poi, np, plt, red, sns, μ, μ_hat_mean):
+def _(
+    X_poi,
+    blue,
+    log_likelihood_poi,
+    n_poi,
+    np,
+    plt,
+    red,
+    sns,
+    μ,
+    μ_hat_mean,
+):
     _σ_hat = np.sqrt(μ_hat_mean / n_poi)
     print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_mean, _σ_hat))
     _μ_range = np.linspace(μ_hat_mean - 2, μ_hat_mean + 2, 100)
@@ -345,17 +356,43 @@ def _(mo):
 
 
 @app.cell
-def _(X_poi):
+def _(X_poi, μ_hat):
     print(X_poi.mean(), X_poi.var(ddof=1))
+    μ_hat
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Pretty close... or far?
+    Is that close or not? Let's simulate from the model with the estimated parameter and see if we get a ratio close to the empirical result:
+    """)
+    return
 
-    Instead, we can compare the histogram to the inferred Poisson distribution and do a [chi-square test]( https://en.wikipedia.org/wiki/Chi-squared_test) to test the null hypothesis that the data was sampled from a Poisson distribution with the inferred parameter.
+
+@app.cell
+def _(X_poi, n_poi, np, plt, rng, μ_hat_mean):
+
+    _X_syn = rng.poisson(μ_hat_mean, size=(10000, n_poi))
+    _ratio = _X_syn.mean(axis=1) / _X_syn.var(axis=1, ddof=1)
+    _low, _high = np.percentile(_ratio, [2.5, 97.5])
+    plt.hist(_ratio, bins=30, density=True)
+    plt.axvline(1, color='k')
+    plt.axvline(_low, color='k', linestyle='--')
+    plt.axvline(_high, color='k', linestyle='--')
+    plt.axvline(X_poi.mean()/X_poi.var(ddof=1), color='r', label='Observed')
+    plt.xlabel('Mean/Variance')
+    plt.ylabel('Density')
+    plt.legend()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Looks good!
+
+    We can also compare the histogram to the inferred Poisson distribution and do a [chi-square test]( https://en.wikipedia.org/wiki/Chi-squared_test) to test the null hypothesis that the data was sampled from a Poisson distribution with the inferred parameter.
     """)
     return
 
@@ -413,8 +450,6 @@ def _(mo):
     ## Inference on real data with Poisson model
 
     We will use data collected by Phillip Garman in 1951 and published by [Bliss and Fisher 1953](https://doi.org/10.2307/3001850) (yes, the same Fisher).
-
-    ![image.png](attachment:b24b0394-f44b-4b8e-bba0-4c9bed9e7149.png)
     """)
     return
 
@@ -463,6 +498,30 @@ def _(mo):
 
 
 @app.cell
+def _(X_mites, n_poi, np, plt, rng, μ_hat_mites):
+    _X_syn = rng.poisson(μ_hat_mites, size=(10000, n_poi))
+    _ratio = _X_syn.mean(axis=1) / _X_syn.var(axis=1, ddof=1)
+    _low, _high = np.percentile(_ratio, [2.5, 97.5])
+    plt.hist(_ratio, bins=30, density=True)
+    plt.axvline(1, color='k')
+    plt.axvline(_low, color='k', linestyle='--')
+    plt.axvline(_high, color='k', linestyle='--')
+    plt.axvline(X_mites.mean()/X_mites.var(ddof=1), color='r', label='Observed')
+    plt.xlabel('Mean/Variance')
+    plt.ylabel('Density')
+    plt.legend()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The red line is out of the distribution, so this model check does not support using the model for this dataset. What about the goodness of fit test?
+    """)
+    return
+
+
+@app.cell
 def _(X_mites, goodness_of_fit_poisson, μ_hat_mites):
     goodness_of_fit_poisson(μ_hat_mites, X_mites)
     return
@@ -471,7 +530,7 @@ def _(X_mites, goodness_of_fit_poisson, μ_hat_mites):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The histogram does not seem to fit the Poisson distribution, and the P-value is very low, such that we reject the Poisson model.
+    The P-value is very low, such that we reject the Poisson model.
     Indeed, the variance is about twice as large as the mean.
 
     So what now?
@@ -488,12 +547,12 @@ def _(mo):
     We assume it is drawn from a [Gamma distrubtion](https://en.wikipedia.org/wiki/Gamma_distribution#Related_distributions) with shape $r$ and scale $\phi$ ( with expected value $r\phi$ and variance $r\phi^2$):
     $$
     \mu_i \sim Gamma(r, \phi) \\
-    X_i \sim Poi(\mu_i)
+    x_i \sim Poi(\mu_i)
     $$
 
     We note the model parameters as $\theta = (r, \phi)$.
 
-    Our data is still $\{X_i\}$, but the model is now _compound_, as it includes a model for the measurements $Poi(\mu_i)$ and a model for the Poisson parameter $Gamma(r, \phi)$.
+    Our data is still $\{x_i\}$, but the model is now _compound_, as it includes a model for the measurements $Poi(\mu_i)$ and a model for the Poisson parameter $Gamma(r, \phi)$.
 
     ## Synthetic data from over-dispersed Poisson model
     Let's simulate data according to this compound model.
@@ -566,15 +625,15 @@ def _(mo):
     mo.md(r"""
     Interestingly, this compound model gives rise to the [Negative Binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution#Statistical_inference), such that
     $$
-    X_i \sim NB(r, p) = Gamma\left(r, \frac{p}{1-p}\right)
+    x_i \sim NB(r, p) = Gamma\left(r, \frac{p}{1-p}\right)
     $$
     and $p=\frac{\phi}{\phi+1}$.
 
-    The likelihood function is therefore given by the negative binomial distribution.
+    The likelihood function is therefore given by the negative binomial distribution,
 
     $$
-    \mathcal{L}(r, k~|~X) =
-    \prod_{i=1}^{n}{\binom{X_i +r -1}{X_i} (1-p)^{X_i} p^r}
+    P(X~|~r, p) =
+    \prod_{i=1}^{n}{\binom{x_i +r -1}{x_i} (1-p)^{x_i} p^r}
     $$
     """)
     return
@@ -613,7 +672,7 @@ def _(mo):
 def _(X_gamma, log_likelihood_negbin, θ):
     def neg_log_likelihood(θ, X):
         return -log_likelihood_negbin(θ, X)
-    neg_log_likelihood(θ, X_gamma)
+    print(neg_log_likelihood(θ, X_gamma))
     return (neg_log_likelihood,)
 
 
@@ -647,14 +706,23 @@ def _(np):
 
 @app.cell
 def _(X_gamma, log_likelihood_negbin, θ_range_gamma):
-    # magic command not supported in marimo; please file an issue to add support
-    # %%time
     ll_gamma = log_likelihood_negbin(θ_range_gamma, X_gamma)
     return (ll_gamma,)
 
 
 @app.cell
-def _(green, ll_gamma, plt, r, r_hat_gamma, r_range_gamma, red, φ, φ_hat_gamma, φ_range_gamma):
+def _(
+    green,
+    ll_gamma,
+    plt,
+    r,
+    r_hat_gamma,
+    r_range_gamma,
+    red,
+    φ,
+    φ_hat_gamma,
+    φ_range_gamma,
+):
     _im = plt.pcolormesh(r_range_gamma, φ_range_gamma, ll_gamma, cmap='viridis')
     plt.colorbar(_im, label='Log-likelihood')
     plt.plot(r, φ, '.', color=red, label='truth')
@@ -770,7 +838,16 @@ def _(X_mites, log_likelihood_negbin, np):
 
 
 @app.cell
-def _(green, ll_mites, plt, r_hat_mites, r_range_mites, θ_path, φ_hat_mites, φ_range_mites):
+def _(
+    green,
+    ll_mites,
+    plt,
+    r_hat_mites,
+    r_range_mites,
+    θ_path,
+    φ_hat_mites,
+    φ_range_mites,
+):
     _im = plt.pcolormesh(r_range_mites, φ_range_mites, ll_mites, cmap='viridis')
     plt.colorbar(_im, label='Log-likelihood')
     plt.plot(r_hat_mites, φ_hat_mites, '.', color=green, label='estimate')
