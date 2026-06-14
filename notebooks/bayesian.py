@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
@@ -14,17 +14,19 @@ def _():
     import seaborn as sns
     sns.set_context('talk')
     import warnings
-    from numba import NumbaDeprecationWarning
-    warnings.simplefilter('ignore', NumbaDeprecationWarning)
     red, blue, green = sns.color_palette('Set1', 3)
     return blue, green, mo, np, plt, red, scipy, sns
+
+
+@app.cell
+def _(np):
+    rng = np.random.default_rng(1)
+    return (rng,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ![Py4Eng](img/logo.png)
-
     # Bayesian inference
 
     ## Yoav Ram
@@ -35,7 +37,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    In the previous lecture we discusses the frequentist approach to statistical inference using maximum likelihood.
+    In the previous lecture we discussed the frequentist approach to statistical inference using maximum likelihood estimatio.
     Today we will discuss the Bayesian approach.
 
     Bayesian inference is a method of statistical inference in which Bayes' theorem is used to update the probability for a hypothesis as more evidence or information becomes available.
@@ -46,6 +48,8 @@ def _(mo):
     $$
     P(A \mid B) = \frac{P(B \mid A) P(A)}{P(B)}
     $$
+
+    See animation on [Seeing Theory website](https://seeing-theory.brown.edu/bayesian-inference/index.html#section1).
     """)
     return
 
@@ -102,28 +106,26 @@ def _(mo):
 
 
 @app.cell
-def _(np):
-    np.random.seed(1)
-
+def _(rng):
     # expected number of mites on a leaf
-    μ = 10  
+    μ = 10
     # number of measurements
-    n = 50 
+    n_poi = 50
     # n measurements of the mites
-    X = np.random.poisson(μ, size=n)
-    return X, n, μ
+    X_poi = rng.poisson(μ, size=n_poi)
+    return X_poi, n_poi, μ
 
 
 @app.cell
-def _(X, n, np, plt, red, sns, μ):
+def _(X_poi, n_poi, np, plt, red, sns, μ):
     _fig, _axes = plt.subplots(1, 2, figsize=(8, 4))
     _ax = _axes[0]
-    _ax.plot(np.arange(n), X, '.k')
+    _ax.plot(np.arange(n_poi), X_poi, '.k')
     _ax.axhline(μ, linewidth=3, color=red)
     _ax.set_xlabel('Leaf, $i$')
     _ax.set_ylabel('# Mites, $X_i$')
     _ax = _axes[1]
-    _ax.hist(X, bins=10, density=True)
+    _ax.hist(X_poi, bins=10, density=True)
     _ax.axvline(μ, linewidth=3, alpha=1, color=red)
     _ax.set_ylabel('Density')
     _ax.set_xlabel('# Mites, $X_i$')
@@ -151,10 +153,10 @@ def _(mo):
 
 @app.cell
 def _(np, scipy):
-    def log_likelihood(μ, X):
+    def log_likelihood_poi(μ, X):
          return scipy.stats.poisson(μ).logpmf(X).sum()
-    log_likelihood = np.vectorize(log_likelihood, excluded=(1,))
-    return (log_likelihood,)
+    log_likelihood_poi = np.vectorize(log_likelihood_poi, excluded=(1,))
+    return (log_likelihood_poi,)
 
 
 @app.cell(hide_code=True)
@@ -166,14 +168,14 @@ def _(mo):
 
 
 @app.cell
-def _(X, green, log_likelihood, np, plt, red, sns, μ):
-    μ_mle = X.mean()
+def _(X_poi, green, log_likelihood_poi, np, plt, red, sns, μ):
+    μ_mle = X_poi.mean()
     print("μ = {} \nμ_mle = {:.4f}".format(μ, μ_mle))
 
-    X_range = np.linspace(μ_mle-2, μ_mle+2, 1000)
-    plt.plot(X_range, log_likelihood(X_range, X), label='LL')
-    plt.plot(μ, log_likelihood(μ, X), 'o', color=red, label=r'true $μ$')
-    plt.plot(μ_mle, log_likelihood(μ_mle, X), 'o', color=green, label=r'$\hat{μ}_{mle}$')
+    _μ_range_mle = np.linspace(μ_mle-2, μ_mle+2, 1000)
+    plt.plot(_μ_range_mle, log_likelihood_poi(_μ_range_mle, X_poi), label='LL')
+    plt.plot(μ, log_likelihood_poi(μ, X_poi), 'o', color=red, label=r'true $μ$')
+    plt.plot(μ_mle, log_likelihood_poi(μ_mle, X_poi), 'o', color=green, label=r'$\hat{μ}_{mle}$')
 
     plt.xlabel(r"Expected # mites, $\mu$")
     plt.ylabel("Log-likelihood")
@@ -246,15 +248,15 @@ def _(mo):
 
 
 @app.cell
-def _(log_likelihood, np):
+def _(log_likelihood_poi, np):
     @np.vectorize
-    def log_prior(μ):
+    def log_prior_uniform(μ):
         return 0
 
     def log_posterior(μ, X):
-        return log_prior(μ) + log_likelihood(μ, X)
+        return log_prior_uniform(μ) + log_likelihood_poi(μ, X)
 
-    return log_posterior, log_prior
+    return log_posterior, log_prior_uniform
 
 
 @app.cell(hide_code=True)
@@ -271,38 +273,38 @@ def _(mo):
 
 
 @app.cell
-def _(X, log_likelihood, log_posterior, log_prior, np, μ, μ_mle):
-    μ_range = np.linspace(μ_mle-2, μ_mle+2, 1000)
-    pri = np.exp(log_prior(μ_range))
-    lik = np.exp(log_likelihood(μ_range, X))
-    post = np.exp(log_posterior(μ_range, X))
-    μ_hat = μ_range[post.argmax()] # maximum a posterioi estimate
-    print("μ = {} \nμ_hat = {:.4f}".format(μ, μ_hat))
-    return lik, post, pri, μ_hat, μ_range
+def _(X_poi, log_likelihood_poi, log_posterior, log_prior_uniform, np, μ, μ_mle):
+    μ_range_uniform = np.linspace(μ_mle-2, μ_mle+2, 1000)
+    pri_uniform = np.exp(log_prior_uniform(μ_range_uniform))
+    lik_uniform = np.exp(log_likelihood_poi(μ_range_uniform, X_poi))
+    post_uniform = np.exp(log_posterior(μ_range_uniform, X_poi))
+    μ_hat_uniform = μ_range_uniform[post_uniform.argmax()] # maximum a posterioi estimate
+    print("μ = {} \nμ_hat = {:.4f}".format(μ, μ_hat_uniform))
+    return lik_uniform, post_uniform, pri_uniform, μ_hat_uniform, μ_range_uniform
 
 
 @app.cell
 def _(
-    X,
+    X_poi,
     green,
-    lik,
-    log_likelihood,
+    lik_uniform,
+    log_likelihood_poi,
     log_posterior,
     np,
     plt,
-    post,
-    pri,
+    post_uniform,
+    pri_uniform,
     red,
     sns,
     μ,
-    μ_hat,
-    μ_range,
+    μ_hat_uniform,
+    μ_range_uniform,
 ):
-    plt.plot(μ_range, pri/pri.sum(), label='prior')
-    plt.plot(μ_range, lik/lik.sum(), lw=3, label='likelihood')
-    plt.plot(μ_range, post/post.sum(), ls='--', label='posterior')
-    plt.plot(μ, np.exp(log_posterior(μ, X))/post.sum(), 'o', color=red, label=r'$\mu$')
-    plt.plot(μ_hat, np.exp(log_likelihood(μ_hat, X))/lik.sum(), 'o', color=green, label=r'$\hat{\mu}$')
+    plt.plot(μ_range_uniform, pri_uniform/pri_uniform.sum(), label='prior')
+    plt.plot(μ_range_uniform, lik_uniform/lik_uniform.sum(), lw=3, label='likelihood')
+    plt.plot(μ_range_uniform, post_uniform/post_uniform.sum(), ls='--', label='posterior')
+    plt.plot(μ, np.exp(log_posterior(μ, X_poi))/post_uniform.sum(), 'o', color=red, label=r'$\mu$')
+    plt.plot(μ_hat_uniform, np.exp(log_likelihood_poi(μ_hat_uniform, X_poi))/lik_uniform.sum(), 'o', color=green, label=r'$\hat{\mu}$')
 
     plt.xlabel(r"Expected # mites, $\mu$")
     plt.ylabel("Probability")
@@ -324,37 +326,40 @@ def _(mo):
 
 
 @app.cell
-def _(scipy):
-    def log_prior_1(μ):
+def _(log_likelihood_poi, scipy):
+    def log_prior_normal(μ):
         return scipy.stats.norm(loc=9, scale=2).logpdf(μ)
 
-    return (log_prior_1,)
+    def log_posterior_normal(μ, X):
+        return log_prior_normal(μ) + log_likelihood_poi(μ, X)
+
+    return log_posterior_normal, log_prior_normal
 
 
 @app.cell
 def _(
-    X,
+    X_poi,
     green,
-    log_likelihood,
-    log_posterior,
-    log_prior_1,
+    log_likelihood_poi,
+    log_posterior_normal,
+    log_prior_normal,
     np,
     plt,
     red,
     sns,
     μ,
 ):
-    μ_range_1 = np.linspace(9, 11, 100)
-    pri_1 = np.exp(log_prior_1(μ_range_1))
-    lik_1 = np.exp(log_likelihood(μ_range_1, X))
-    post_1 = np.exp(log_posterior(μ_range_1, X))
-    μ_hat_1 = μ_range_1[post_1.argmax()]  # maximum a posterioi estimate
-    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat_1))
-    plt.plot(μ_range_1, pri_1 / pri_1.sum(), label='prior')
-    plt.plot(μ_range_1, lik_1 / lik_1.sum(), lw=3, label='likelihood')
-    plt.plot(μ_range_1, post_1 / post_1.sum(), ls='--', label='posterior')
-    plt.plot(μ, np.exp(log_posterior(μ, X)) / post_1.sum(), 'o', color=red, label='$\\mu$')
-    plt.plot(μ_hat_1, np.exp(log_posterior(μ_hat_1, X)) / post_1.sum(), 'o', color=green, label='$\\hat{\\mu}$')
+    μ_range_normal = np.linspace(9, 11, 100)
+    pri_normal = np.exp(log_prior_normal(μ_range_normal))
+    lik_normal = np.exp(log_likelihood_poi(μ_range_normal, X_poi))
+    post_normal = np.exp(log_posterior_normal(μ_range_normal, X_poi))
+    μ_hat_normal = μ_range_normal[post_normal.argmax()]  # maximum a posterioi estimate
+    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat_normal))
+    plt.plot(μ_range_normal, pri_normal / pri_normal.sum(), label='prior')
+    plt.plot(μ_range_normal, lik_normal / lik_normal.sum(), lw=3, label='likelihood')
+    plt.plot(μ_range_normal, post_normal / post_normal.sum(), ls='--', label='posterior')
+    plt.plot(μ, np.exp(log_posterior_normal(μ, X_poi)) / post_normal.sum(), 'o', color=red, label='$\\mu$')
+    plt.plot(μ_hat_normal, np.exp(log_posterior_normal(μ_hat_normal, X_poi)) / post_normal.sum(), 'o', color=green, label='$\\hat{\\mu}$')
     plt.xlabel('Expected # mites, $\\mu$')
     plt.ylabel('Probability')
     plt.legend(bbox_to_anchor=(1, 0.8))
@@ -401,14 +406,14 @@ def _(mo):
 
 
 @app.cell
-def _(f, np, plt):
+def _(f, np, plt, rng):
     _N = 10000
-    _x, y = np.random.random((2, _N))
-    accepted = y < f(_x)
-    print('estimate:\t', accepted.mean())
+    _x, _y = rng.random((2, _N))
+    _accepted = _y < f(_x)
+    print('estimate:\t', _accepted.mean())
     print('real:\t\t', 0.5 - 1 / (2 * np.exp(2)))
-    plt.plot(_x, y, '.')
-    plt.plot(_x[accepted], y[accepted], '.')
+    plt.plot(_x, _y, '.')
+    plt.plot(_x[_accepted], _y[_accepted], '.')
     plt.xlim(0, 1)
     plt.ylim(0, 1)
     return
@@ -446,32 +451,32 @@ def _(mo):
 
 
 @app.cell
-def _(X, log_likelihood, np, scipy):
+def _(X_poi, log_likelihood_poi, np, rng, scipy):
     _N = 10000
     prior = scipy.stats.norm(9, 2)
-    μs = prior.rvs(_N)
-    log_liks = log_likelihood(μs, X)
+    μs = prior.rvs(_N, random_state=rng)
+    log_liks = log_likelihood_poi(μs, X_poi)
     liks = np.exp(log_liks)
     liks = liks / liks.sum()
     liks = liks / prior.pdf(μs)
-    randoms = np.random.random(_N)
-    accepted_1 = randoms < liks
-    _accept_rate = accepted_1.mean()
+    randoms = rng.random(_N)
+    accepted = randoms < liks
+    _accept_rate = accepted.mean()
     print('Acceptance rate: ', _accept_rate)
-    return accepted_1, liks, μs
+    return accepted, liks, μs
 
 
 @app.cell
-def _(accepted_1, μ, μs):
-    μ_hat_2 = μs[accepted_1].mean()
-    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat_2))
+def _(accepted, μ, μs):
+    μ_hat_rejection = μs[accepted].mean()
+    print('μ = {} \nμ_hat = {:.4f}'.format(μ, μ_hat_rejection))
     return
 
 
 @app.cell
-def _(accepted_1, liks, plt, sns, μs):
-    plt.plot(μs[~accepted_1], liks[~accepted_1], '.', label='rejected')
-    plt.plot(μs[accepted_1], liks[accepted_1], '.', label='accepted')
+def _(accepted, liks, plt, sns, μs):
+    plt.plot(μs[~accepted], liks[~accepted], '.', label='rejected')
+    plt.plot(μs[accepted], liks[accepted], '.', label='accepted')
     plt.legend(bbox_to_anchor=(1, 0.8))
     plt.xlabel('$\\mu$')
     plt.ylabel('Probability')
@@ -480,9 +485,9 @@ def _(accepted_1, liks, plt, sns, μs):
 
 
 @app.cell
-def _(accepted_1, plt, sns, μs):
+def _(accepted, plt, sns, μs):
     plt.hist(μs, bins=50, density=True, label='prior')
-    plt.hist(μs[accepted_1], bins=20, density=True, alpha=0.5, label='posterior')
+    plt.hist(μs[accepted], bins=20, density=True, alpha=0.5, label='posterior')
     plt.legend()
     plt.xlabel('$\\mu$')
     plt.ylabel('Probability')
@@ -534,31 +539,31 @@ def _(mo):
 
 
 @app.cell
-def _(X, log_likelihood, log_prior_1, np):
+def _(X_poi, log_likelihood_poi, log_prior_normal, np, rng):
     η = 0.5
     _N = 10000
     burnin = _N // 2
-    accept = 0
-    μ_samples = np.empty(_N)
-    μ_samples[0] = 7
-    logposterior = log_likelihood(μ_samples[0], X) + log_prior_1(μ_samples[0])
-    proposals = np.random.normal(0, η, size=_N)
-    loguniforms = np.log(np.random.random(size=_N))
+    _accept = 0
+    μ_chain_mcmc = np.empty(_N)
+    μ_chain_mcmc[0] = 7
+    _logposterior = log_likelihood_poi(μ_chain_mcmc[0], X_poi) + log_prior_normal(μ_chain_mcmc[0])
+    _proposals = rng.normal(0, η, size=_N)
+    _loguniforms = np.log(rng.random(size=_N))
     logposteriors = np.zeros(_N)
-    for i in range(1, _N):
-        μ_candidate = μ_samples[i - 1] + proposals[i]
-        logposterior_candidate = log_likelihood(μ_candidate, X) + log_prior_1(μ_candidate)
-        logα = logposterior_candidate - logposterior
-        if loguniforms[i] < logα:
-            logposterior = logposterior_candidate
-            μ_samples[i] = μ_candidate
-            accept = accept + 1
+    for _i in range(1, _N):
+        _μ_candidate = μ_chain_mcmc[_i - 1] + _proposals[_i]
+        _logposterior_candidate = log_likelihood_poi(_μ_candidate, X_poi) + log_prior_normal(_μ_candidate)
+        _logα = _logposterior_candidate - _logposterior
+        if _loguniforms[_i] < _logα:
+            _logposterior = _logposterior_candidate
+            μ_chain_mcmc[_i] = _μ_candidate
+            _accept = _accept + 1
         else:
-            μ_samples[i] = μ_samples[i - 1]
-        logposteriors[i] = logposterior
-    _accept_rate = accept / _N
+            μ_chain_mcmc[_i] = μ_chain_mcmc[_i - 1]
+        logposteriors[_i] = _logposterior
+    _accept_rate = _accept / _N
     print('Acceptance rate:', _accept_rate)
-    return burnin, logposteriors, η, μ_samples
+    return burnin, logposteriors, η, μ_chain_mcmc
 
 
 @app.cell(hide_code=True)
@@ -572,9 +577,9 @@ def _(mo):
 
 
 @app.cell
-def _(burnin, plt, sns, μ_samples):
-    plt.plot(μ_samples, lw=1)
-    plt.axhline(μ_samples[burnin:].mean(), color='k')
+def _(burnin, plt, sns, μ_chain_mcmc):
+    plt.plot(μ_chain_mcmc, lw=1)
+    plt.axhline(μ_chain_mcmc[burnin:].mean(), color='k')
     plt.fill_betweenx(plt.ylim(), 0, burnin, color='k', alpha=0.25)
     plt.xlabel('Iterations')
     plt.ylabel('Sample')
@@ -594,9 +599,9 @@ def _(mo):
 
 
 @app.cell
-def _(burnin, μ_samples):
-    μ_samples_1 = μ_samples[burnin:]
-    return (μ_samples_1,)
+def _(burnin, μ_chain_mcmc):
+    μ_samples_mcmc = μ_chain_mcmc[burnin:]
+    return (μ_samples_mcmc,)
 
 
 @app.cell(hide_code=True)
@@ -628,15 +633,15 @@ def _(mo):
 
 
 @app.cell
-def _(green, plt, red, sns, μ, μ_samples_1):
-    μ_hat_3 = μ_samples_1.mean()
-    σ_hat = μ_samples_1.std()
-    print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_3, σ_hat))
-    plt.hist(μ_samples_1, bins=50, alpha=0.75, label='Posterior')
+def _(green, plt, red, sns, μ, μ_samples_mcmc):
+    μ_hat_mcmc = μ_samples_mcmc.mean()
+    σ_hat_mcmc = μ_samples_mcmc.std()
+    print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_mcmc, σ_hat_mcmc))
+    plt.hist(μ_samples_mcmc, bins=50, alpha=0.75, label='Posterior')
     plt.axvline(μ, color=red, label='$\\mu$')
-    plt.axvline(μ_hat_3, color=green, label='$\\hat{\\mu}$')
-    plt.axvline(μ_hat_3 + σ_hat, color='k', ls='--')
-    plt.axvline(μ_hat_3 - σ_hat, color='k', ls='--')
+    plt.axvline(μ_hat_mcmc, color=green, label='$\\hat{\\mu}$')
+    plt.axvline(μ_hat_mcmc + σ_hat_mcmc, color='k', ls='--')
+    plt.axvline(μ_hat_mcmc - σ_hat_mcmc, color='k', ls='--')
     plt.xlim(8.5, 12)
     plt.xlabel('$\\mu$')
     plt.ylabel('Probability')
@@ -655,8 +660,8 @@ def _(mo):
 
 
 @app.cell
-def _(np, plt, scipy, η, μ_samples_1):
-    diff = μ_samples_1[1:] - μ_samples_1[:-1]
+def _(np, plt, scipy, η, μ_samples_mcmc):
+    diff = μ_samples_mcmc[1:] - μ_samples_mcmc[:-1]
     plt.hist(diff, bins=50, density=True)
     diff_range = np.linspace(-η * 5, η * 5)
     plt.plot(diff_range, scipy.stats.norm.pdf(diff_range, 0, η), color='k')
@@ -679,8 +684,8 @@ def _(mo):
 
 
 @app.cell
-def _(np, plt, sns, μ_samples_1):
-    autocorr = np.correlate(μ_samples_1, μ_samples_1, mode='full')
+def _(np, plt, sns, μ_samples_mcmc):
+    autocorr = np.correlate(μ_samples_mcmc, μ_samples_mcmc, mode='full')
     autocorr = autocorr / autocorr.max()
     autocorr = autocorr[autocorr.size // 2:]
     plt.plot(autocorr)
@@ -710,29 +715,29 @@ def _():
 
 
 @app.cell
-def _(np):
+def _(rng):
     ndim = 1  # number of parameters in the model
     nwalkers = 50  # number of MCMC walkers
     nsteps = 10000 // nwalkers  # number of MCMC steps to take
     nburn = nsteps // 2  # "burn-in" period to let chains stabilize
 
     # we'll start at random locations between 0 and 2000
-    guesses = 20 * np.random.rand(nwalkers, ndim)
+    guesses = 20 * rng.random((nwalkers, ndim))
     return guesses, nburn, ndim, nsteps, nwalkers
 
 
 @app.cell
-def _(X, emcee, guesses, log_posterior, nburn, ndim, np, nsteps, nwalkers):
+def _(X_poi, emcee, guesses, log_posterior, nburn, ndim, np, nsteps, nwalkers):
     # avoid negative μ values
     def log_posterior_(μ, X):
         if μ < 0: return -np.inf
         return log_posterior(μ, X)
 
     sampler = emcee.EnsembleSampler(
-        nwalkers=nwalkers, 
+        nwalkers=nwalkers,
         ndim=ndim,
         log_prob_fn=log_posterior_,
-        args=[X]
+        args=[X_poi]
     )
     sampler.run_mcmc(
         initial_state=guesses,
@@ -741,24 +746,24 @@ def _(X, emcee, guesses, log_posterior, nburn, ndim, np, nsteps, nwalkers):
 
     # sampler.chain.shape = (nwalkers, nsteps, ndim)
     # discard burn-in points and flatten with ravel()
-    sample = sampler.chain[:, nburn:, :].ravel()
-    return sample, sampler
+    μ_samples_emcee = sampler.chain[:, nburn:, :].ravel()
+    return μ_samples_emcee, sampler
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    If this all worked correctly, the array `sample` should contain a series of 5,000 points drawn from the posterior. Let's plot them and check.
+    If this all worked correctly, the array `μ_samples_emcee` should contain a series of 5,000 points drawn from the posterior. Let's plot them and check.
     """)
     return
 
 
 @app.cell
-def _(sample, μ):
-    μ_hat_4 = sample.mean()
-    std_hat = sample.std()
-    print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_4, std_hat))
-    return std_hat, μ_hat_4
+def _(μ, μ_samples_emcee):
+    μ_hat_emcee = μ_samples_emcee.mean()
+    σ_hat_emcee = μ_samples_emcee.std()
+    print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_emcee, σ_hat_emcee))
+    return σ_hat_emcee, μ_hat_emcee
 
 
 @app.cell(hide_code=True)
@@ -795,12 +800,12 @@ def _(mo):
 
 
 @app.cell
-def _(green, plt, red, sample, sns, std_hat, μ, μ_hat_4):
-    plt.hist(sample, bins=50, alpha=0.5)
+def _(green, plt, red, sns, μ, μ_hat_emcee, μ_samples_emcee, σ_hat_emcee):
+    plt.hist(μ_samples_emcee, bins=50, alpha=0.5)
     plt.axvline(μ, color=red, label='$\\mu$')
-    plt.axvline(μ_hat_4, color=green, label='$\\hat{\\mu}$')
-    plt.axvline(μ_hat_4 + std_hat, color='k', ls='--')
-    plt.axvline(μ_hat_4 - std_hat, color='k', ls='--')
+    plt.axvline(μ_hat_emcee, color=green, label='$\\hat{\\mu}$')
+    plt.axvline(μ_hat_emcee + σ_hat_emcee, color='k', ls='--')
+    plt.axvline(μ_hat_emcee - σ_hat_emcee, color='k', ls='--')
     plt.xlabel(μ)
     plt.ylabel('Posterior')
     plt.legend()
@@ -845,12 +850,12 @@ def _(mo):
 
 
 @app.cell
-def _(X, pm):
+def _(X_poi, pm):
     with pm.Model() as poisson_model:
         _μ_ = pm.Normal('μ', mu=9, sigma=2)  # prior
-        _X_obs = pm.Poisson('X_obs', mu=_μ_, observed=X)  # poisson model
-        idata = pm.sample(draws=10000)
-    return idata, poisson_model
+        _X_obs = pm.Poisson('X_obs', mu=_μ_, observed=X_poi)  # poisson model
+        idata_nuts = pm.sample(draws=10000)
+    return idata_nuts, poisson_model
 
 
 @app.cell(hide_code=True)
@@ -862,25 +867,25 @@ def _(mo):
 
 
 @app.cell
-def _(az, idata):
-    az.plot_trace(idata);
+def _(az, idata_nuts):
+    az.plot_trace(idata_nuts);
     return
 
 
 @app.cell
-def _(az, idata, μ):
+def _(az, idata_nuts, μ):
     print('μ = {}'.format(μ))
-    isummary = az.summary(idata, round_to=2)
-    μ_hat_5 = isummary.loc['μ', 'mean']
-    isummary
-    return (μ_hat_5,)
+    isummary_nuts = az.summary(idata_nuts, round_to=2)
+    μ_hat_nuts = isummary_nuts.loc['μ', 'mean']
+    isummary_nuts
+    return (μ_hat_nuts,)
 
 
 @app.cell
-def _(az, green, idata, plt, red, μ, μ_hat_5):
-    az.plot_posterior(idata, round_to=4)
+def _(az, green, idata_nuts, plt, red, μ, μ_hat_nuts):
+    az.plot_posterior(idata_nuts, round_to=4)
     plt.axvline(μ, color=red)
-    plt.axvline(μ_hat_5, color=green)
+    plt.axvline(μ_hat_nuts, color=green)
     return
 
 
@@ -952,13 +957,13 @@ def _(mo):
 
 @app.cell
 def _(approx, az, μ):
-    idata_1 = approx.sample(5000)
-    az.plot_posterior(idata_1)
-    az.summary(idata_1)
-    μ_samples_2 = idata_1.posterior['μ'].to_numpy()
-    μ_hat_6 = μ_samples_2.mean()
-    μ_std = μ_samples_2.std()
-    print('μ = {} \nμ_hat = {:.2f} +/- {:.2f}'.format(μ, μ_hat_6, μ_std))
+    idata_advi = approx.sample(5000)
+    az.plot_posterior(idata_advi)
+    az.summary(idata_advi)
+    μ_samples_advi = idata_advi.posterior['μ'].to_numpy()
+    μ_hat_advi = μ_samples_advi.mean()
+    σ_hat_advi = μ_samples_advi.std()
+    print('μ = {} \nμ_hat = {:.2f} +/- {:.2f}'.format(μ, μ_hat_advi, σ_hat_advi))
     return
 
 
@@ -994,26 +999,24 @@ def _(mo):
 
 
 @app.cell
-def _(np):
-    # for reproducibility
-    np.random.seed(42)
-    n_1 = 150
+def _(rng):
+    n_gamma = 150
     θ = r, φ = (5, 2)
-    μi = np.random.gamma(r, scale=φ, size=n_1)
-    X_1 = np.random.poisson(μi)
-    return X_1, n_1, r, θ, φ
+    _μi = rng.gamma(r, scale=φ, size=n_gamma)
+    X_gamma = rng.poisson(_μi)
+    return X_gamma, n_gamma, r, θ, φ
 
 
 @app.cell
-def _(X_1, n_1, np, plt, r, red, sns, φ):
+def _(X_gamma, n_gamma, np, plt, r, red, sns, φ):
     _fig, _axes = plt.subplots(1, 2, figsize=(8, 4))
     _ax = _axes[0]
-    _ax.plot(np.arange(n_1), X_1, '.k')
+    _ax.plot(np.arange(n_gamma), X_gamma, '.k')
     _ax.axhline(r * φ, linewidth=3, color=red)
     _ax.set_xlabel('Measurement, $i$')
     _ax.set_ylabel('# Mites, $X_i$')
     _ax = _axes[1]
-    _ax.hist(X_1, bins=10, density=True)
+    _ax.hist(X_gamma, bins=10, density=True)
     _ax.axvline(r * φ, linewidth=3, alpha=1, color=red)
     _ax.set_ylabel('Density')
     _ax.set_xlabel('Count, $X_i$')
@@ -1031,13 +1034,13 @@ def _(mo):
 
 
 @app.cell
-def _(X_1, scipy, θ):
-    def log_likelihood_1(θ, X):
+def _(X_gamma, scipy, θ):
+    def log_likelihood_negbin(θ, X):
         r, φ = θ
         p = φ / (φ + 1)
         return scipy.stats.nbinom(r, p).logpmf(X).sum()
-    log_likelihood_1(θ, X_1)
-    return (log_likelihood_1,)
+    log_likelihood_negbin(θ, X_gamma)
+    return (log_likelihood_negbin,)
 
 
 @app.cell(hide_code=True)
@@ -1049,17 +1052,17 @@ def _(mo):
 
 
 @app.cell
-def _(X_1, log_likelihood_1, r, scipy, φ):
+def _(X_gamma, log_likelihood_negbin, r, scipy, φ):
     def neg_log_likelihood(θ, X):
-        return -log_likelihood_1(θ, X)
+        return -log_likelihood_negbin(θ, X)
 
     def mle(X, verbose=False, full_path=False):
         r_guess = X.mean()
         φ_guess = r_guess * r_guess / (X.var(ddof=1) - r_guess)  # eq 3 in Bliss and Fisher 1953
         return scipy.optimize.fmin(func=neg_log_likelihood, x0=(r_guess, φ_guess), args=(X,), disp=verbose, retall=full_path)
-    θ_hat = mle(X_1, verbose=True)
-    r_hat, φ_hat = θ_hat  # function to minimize with respect to first argument
-    print('r = {} \tr_hat = {:.4f}\nϕ = {}\tϕ_hat = {:.4f}'.format(r, r_hat, φ, φ_hat))  # initial guess  # additional arguments to func  # no prints
+    θ_hat_mle = mle(X_gamma, verbose=True)
+    r_hat_mle, φ_hat_mle = θ_hat_mle  # function to minimize with respect to first argument
+    print('r = {} \tr_hat = {:.4f}\nϕ = {}\tϕ_hat = {:.4f}'.format(r, r_hat_mle, φ, φ_hat_mle))  # initial guess  # additional arguments to func  # no prints
     return
 
 
@@ -1089,12 +1092,12 @@ def _(mo):
 
 
 @app.cell
-def _(X_1, n_1, pm):
-    with pm.Model(coords={'leaf': range(n_1)}) as gamma_poisson_model:
+def _(X_gamma, n_gamma, pm):
+    with pm.Model(coords={'leaf': range(n_gamma)}) as gamma_poisson_model:
         _r_ = pm.Uniform('r', lower=0, upper=10)
         _φ_ = pm.Uniform('ϕ', lower=0, upper=5)
         _μ_ = pm.Gamma('μ', alpha=_r_, beta=1 / _φ_, dims='leaf')
-        _X_obs = pm.Poisson('X_obs', mu=_μ_, observed=X_1)
+        _X_obs = pm.Poisson('X_obs', mu=_μ_, observed=X_gamma)
         idata_gamma_poisson = pm.sample(draws=10000)
     return (idata_gamma_poisson,)
 
@@ -1109,10 +1112,10 @@ def _(az, idata_gamma_poisson, plt):
 @app.cell
 def _(az, idata_gamma_poisson, r, φ):
     print('r={}, ϕ={}'.format(r, φ))
-    isummary_1 = az.summary(idata_gamma_poisson, var_names=['r', 'ϕ'], round_to=4)
-    r_hat_1 = isummary_1.loc['r', 'mean']
-    φ_hat_1 = isummary_1.loc['ϕ', 'mean']
-    isummary_1
+    isummary_gamma = az.summary(idata_gamma_poisson, var_names=['r', 'ϕ'], round_to=4)
+    r_hat_gamma = isummary_gamma.loc['r', 'mean']
+    φ_hat_gamma = isummary_gamma.loc['ϕ', 'mean']
+    isummary_gamma
     return
 
 
@@ -1135,9 +1138,9 @@ def _(mo):
 @app.cell
 def _(az, idata_gamma_poisson, plt, r, red, φ):
     az.plot_forest(idata_gamma_poisson, var_names=['μ'], kind='forestplot', combined=True);
-    plt.axvline(r * ϕ, color=red);
-    plt.axvline(r * ϕ + (r * ϕ * ϕ)**0.5, color=red, ls='dashed');
-    plt.axvline(r * ϕ - (r * ϕ * ϕ)**0.5, color=red, ls='dashed');
+    plt.axvline(r * φ, color=red);
+    plt.axvline(r * φ + (r * φ * φ)**0.5, color=red, ls='dashed');
+    plt.axvline(r * φ - (r * φ * φ)**0.5, color=red, ls='dashed');
     return
 
 
@@ -1155,12 +1158,12 @@ def _(mo):
 
 @app.cell
 def _(np, plt):
-    X_2 = np.loadtxt('../data/mites.csv', delimiter=',')
-    plt.hist(X_2, range(8))
-    plt.axvline(X_2.mean(), color='k')
+    X_mites = np.loadtxt('../data/mites.csv', delimiter=',')
+    plt.hist(X_mites, range(8))
+    plt.axvline(X_mites.mean(), color='k')
     plt.xlabel('# Mites on leaf')
     plt.ylabel('# leaves')
-    return (X_2,)
+    return (X_mites,)
 
 
 @app.cell(hide_code=True)
@@ -1172,12 +1175,12 @@ def _(mo):
 
 
 @app.cell
-def _(X_2, n_1, pm):
-    with pm.Model(coords={'leaf': range(n_1)}) as mites_model:
+def _(X_mites, pm):
+    with pm.Model(coords={'leaf': range(X_mites.size)}) as mites_model:
         _r_ = pm.Uniform('r', lower=0, upper=3)
         _φ_ = pm.Uniform('ϕ', lower=0, upper=2)
         _μ_ = pm.Gamma('μ', alpha=_r_, beta=1 / _φ_, dims='leaf')
-        _X_obs = pm.Poisson('X_obs', mu=_μ_, observed=X_2)
+        _X_obs = pm.Poisson('X_obs', mu=_μ_, observed=X_mites)
         idata_mites = pm.sample(draws=50000)
     return (idata_mites,)
 
@@ -1191,16 +1194,16 @@ def _(az, idata_mites, plt):
 
 @app.cell
 def _(az, idata_mites):
-    isummary_2 = az.summary(idata_mites, var_names=['r', 'ϕ'], round_to=4)
-    isummary_2
-    return (isummary_2,)
+    isummary_mites = az.summary(idata_mites, var_names=['r', 'ϕ'], round_to=4)
+    isummary_mites
+    return (isummary_mites,)
 
 
 @app.cell
-def _(isummary_2):
-    r_hat_2 = isummary_2.loc['r', 'mean']
-    φ_hat_2 = isummary_2.loc['ϕ', 'mean']
-    return r_hat_2, φ_hat_2
+def _(isummary_mites):
+    r_hat_mites = isummary_mites.loc['r', 'mean']
+    φ_hat_mites = isummary_mites.loc['ϕ', 'mean']
+    return r_hat_mites, φ_hat_mites
 
 
 @app.cell
@@ -1211,10 +1214,10 @@ def _(az, green, idata_mites):
 
 
 @app.cell
-def _(X_2, green, plt, r_hat_2, φ_hat_2):
-    plt.hist(X_2, range(8))
-    plt.axvline(X_2.mean(), color='k')
-    plt.axvline(r_hat_2 * φ_hat_2, color=green)
+def _(X_mites, green, plt, r_hat_mites, φ_hat_mites):
+    plt.hist(X_mites, range(8))
+    plt.axvline(X_mites.mean(), color='k')
+    plt.axvline(r_hat_mites * φ_hat_mites, color=green)
     plt.xlabel('# Mites on leaf')
     plt.ylabel('# leaves')
     return
