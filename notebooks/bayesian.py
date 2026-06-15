@@ -15,12 +15,15 @@ def _():
     sns.set_context('talk')
     import warnings
     red, blue, green = sns.color_palette('Set1', 3)
+    import os
+    if os.path.basename(os.getcwd()) != 'notebooks':
+        os.chdir('notebooks')
     return blue, green, mo, np, plt, red, scipy, sns
 
 
 @app.cell
 def _(np):
-    rng = np.random.default_rng(1)
+    rng = np.random.default_rng(1202)
     return (rng,)
 
 
@@ -60,6 +63,7 @@ def _(mo):
     Applied to model-based inference, we define:
     - $\theta$ - the model parameters
     - $X$ - the data
+
     and we have
 
     $$
@@ -85,13 +89,13 @@ def _(mo):
 
     Imagine that we count the number of [European red mites](https://en.wikipedia.org/wiki/Panonychus_ulmi) on apple leaves.
 
-    Denote the number of leaves by $n$, where the $i^{\rm th}$ measurement $X_i$ reports the observed number of mites on leaf $i$.
-    We assume that $X_i$ is Poisson-distributed around the expected number of mites $\mu$,
+    Denote the number of leaves by $n$, where the $i^{\rm th}$ measurement $x_i$ reports the observed number of mites on leaf $i$.
+    We assume that $x_i$ is Poisson-distributed around the expected number of mites $\mu$,
     $$
-    X_i \sim Poi(\mu)
+    x_i \sim Poi(\mu)
     $$
 
-    So $Poi(\mu)$ is our **model**, and $\{X_i\}$ is the data.
+    So $Poi(\mu)$ is our **model**, and $X=\{x_i\}_{i=1}^{n}$ is the data.
 
     The question is, given this data $\{X_i\}$, what is our best estimate of $\mu$?
     And the next question would be: does the model provide a good fit to the data?
@@ -107,10 +111,10 @@ def _(mo):
 
 @app.cell
 def _(rng):
-    # expected number of mites on a leaf
     μ = 10
+    # expected number of mites on a leaf
+    n_poi = 150
     # number of measurements
-    n_poi = 50
     # n measurements of the mites
     X_poi = rng.poisson(μ, size=n_poi)
     return X_poi, n_poi, μ
@@ -123,14 +127,15 @@ def _(X_poi, n_poi, np, plt, red, sns, μ):
     _ax.plot(np.arange(n_poi), X_poi, '.k')
     _ax.axhline(μ, linewidth=3, color=red)
     _ax.set_xlabel('Leaf, $i$')
-    _ax.set_ylabel('# Mites, $X_i$')
+    _ax.set_ylabel('# Mites, $x_i$')
     _ax = _axes[1]
     _ax.hist(X_poi, bins=10, density=True)
     _ax.axvline(μ, linewidth=3, alpha=1, color=red)
     _ax.set_ylabel('Density')
-    _ax.set_xlabel('# Mites, $X_i$')
+    _ax.set_xlabel('# Mites, $x_i$')
     _fig.tight_layout()
     sns.despine()
+    plt.show()
     return
 
 
@@ -138,7 +143,7 @@ def _(X_poi, n_poi, np, plt, red, sns, μ):
 def _(mo):
     mo.md(r"""
     In this toy example we already know the
-    true value of $\mu$, but the question is this: **given our measurements $\{X_i\}$, what is our best estimate of the true $\mu$?**
+    true value of $\mu$, but the question is this: **given our data $X$, what is our best estimate of the true $\mu$?**
     """)
     return
 
@@ -153,9 +158,10 @@ def _(mo):
 
 @app.cell
 def _(np, scipy):
+    @np.vectorize(excluded=(1,)) # excluded=(1,) means that the second argument (X) is not vectorized and is passed as is to the function
     def log_likelihood_poi(μ, X):
          return scipy.stats.poisson(μ).logpmf(X).sum()
-    log_likelihood_poi = np.vectorize(log_likelihood_poi, excluded=(1,))
+
     return (log_likelihood_poi,)
 
 
@@ -215,8 +221,8 @@ def _(mo):
     Let's assume the prior is uniform in the positive values:
 
     $$
-    P(\mu = u) = \begin{cases}
-    1, & u > 0 \\
+    P(\mu) = \begin{cases}
+    1, & \mu > 0 \\
     0, & \text{otherwise}
     \end{cases}
     $$
@@ -225,8 +231,8 @@ def _(mo):
     Therefore the log-prior is:
 
     $$
-    logP(\mu = x) = \begin{cases}
-    0, & x > 0 \\
+    logP(\mu) = \begin{cases}
+    0, & \mu > 0 \\
     -\infty, & \text{otherwise}
     \end{cases}
     $$
@@ -240,9 +246,8 @@ def _(mo):
     We already have a definition for the log-likelihood in the form of the above `log_likelihood` function, which computes:
     $$
     logP(\mu \mid X) = \log{P(X|\mu)} + \log{P(\mu)} =
-    \sum_{i=1}^{n}{X_i \log{\mu} -\mu -\log{(X_i!)}} + 0
+    \sum_{i=1}^{n}{x_i \log{\mu} -\mu -\log{(x_i!)}} + 0
     $$
-    where $X_i$ ($1 \le i \le n$) are the data points in $X$ and $\mu>0$.
     """)
     return
 
@@ -273,14 +278,28 @@ def _(mo):
 
 
 @app.cell
-def _(X_poi, log_likelihood_poi, log_posterior, log_prior_uniform, np, μ, μ_mle):
+def _(
+    X_poi,
+    log_likelihood_poi,
+    log_posterior,
+    log_prior_uniform,
+    np,
+    μ,
+    μ_mle,
+):
     μ_range_uniform = np.linspace(μ_mle-2, μ_mle+2, 1000)
     pri_uniform = np.exp(log_prior_uniform(μ_range_uniform))
     lik_uniform = np.exp(log_likelihood_poi(μ_range_uniform, X_poi))
     post_uniform = np.exp(log_posterior(μ_range_uniform, X_poi))
     μ_hat_uniform = μ_range_uniform[post_uniform.argmax()] # maximum a posterioi estimate
     print("μ = {} \nμ_hat = {:.4f}".format(μ, μ_hat_uniform))
-    return lik_uniform, post_uniform, pri_uniform, μ_hat_uniform, μ_range_uniform
+    return (
+        lik_uniform,
+        post_uniform,
+        pri_uniform,
+        μ_hat_uniform,
+        μ_range_uniform,
+    )
 
 
 @app.cell
@@ -310,6 +329,7 @@ def _(
     plt.ylabel("Probability")
     plt.legend(bbox_to_anchor=(1, 0.8))
     sns.despine()
+    plt.show()
     return
 
 
@@ -318,7 +338,7 @@ def _(mo):
     mo.md(r"""
     Let's change the prior to something more informative: say we think the number of mites on a leaf should be $9 \pm 2$, because of some previous study. We can then use an informative prior distribution,
     $$
-    \mu \sim N(\mu=9, \sigma=2)
+    \mu \sim N(9, 2)
     $$
     Now we can plot the prior, likelihood, and posterior again.
     """)
@@ -348,8 +368,9 @@ def _(
     red,
     sns,
     μ,
+    μ_mle,
 ):
-    μ_range_normal = np.linspace(9, 11, 100)
+    μ_range_normal = np.linspace(μ_mle-2, μ_mle+2, 1000)
     pri_normal = np.exp(log_prior_normal(μ_range_normal))
     lik_normal = np.exp(log_likelihood_poi(μ_range_normal, X_poi))
     post_normal = np.exp(log_posterior_normal(μ_range_normal, X_poi))
@@ -364,6 +385,7 @@ def _(
     plt.ylabel('Probability')
     plt.legend(bbox_to_anchor=(1, 0.8))
     sns.despine()
+    plt.show()
     return
 
 
@@ -377,7 +399,7 @@ def _(mo):
     A common approach is therefore to use *Monte Carlo* or sampling methods.
     With Monte Carlo, instead of directly computing the posterior distribution, we indirectly sample from the posterior distribution.
 
-    **Note**: this is an important shift in our methodology. **Instead of computing, we sample**. That is, instead of finding the function $P(\mu \mid X)$, we want to find a set of $m$ samples from the posterior $\{\mu_i\}$ such that $P(\mu_i = u) = P(\mu=u \mid X)$.
+    **Note**: this is an important shift in our methodology. **Instead of computing, we sample**. That is, instead of finding the function $P(\mu \mid X)$, we want to find a set of $m$ samples $\{\mu_i\}_{i=1}^{m}$ from the posterior such that $\mu_i \sim P(\mu \mid X)$.
 
     Monte Carlo methods are used in a variety of applications other then posterior sampling.
 
@@ -389,11 +411,12 @@ def _(mo):
 @app.cell
 def _(np, plt):
     def f(x):
-        return np.exp(-2 * _x)
+        return np.exp(-2 * x)
     _x = np.linspace(0, 1)
     plt.plot(_x, f(_x))
     plt.xlim(0, 1)
     plt.ylim(0, 1)
+    plt.show()
     return (f,)
 
 
@@ -412,10 +435,11 @@ def _(f, np, plt, rng):
     _accepted = _y < f(_x)
     print('estimate:\t', _accepted.mean())
     print('real:\t\t', 0.5 - 1 / (2 * np.exp(2)))
-    plt.plot(_x, _y, '.')
-    plt.plot(_x[_accepted], _y[_accepted], '.')
+    plt.plot(_x, _y, '.', markersize=2)
+    plt.plot(_x[_accepted], _y[_accepted], '.', markersize=2)
     plt.xlim(0, 1)
     plt.ylim(0, 1)
+    plt.show()
     return
 
 
@@ -481,6 +505,7 @@ def _(accepted, liks, plt, sns, μs):
     plt.xlabel('$\\mu$')
     plt.ylabel('Probability')
     sns.despine()
+    plt.show()
     return
 
 
@@ -492,6 +517,7 @@ def _(accepted, plt, sns, μs):
     plt.xlabel('$\\mu$')
     plt.ylabel('Probability')
     sns.despine()
+    plt.show()
     return
 
 
@@ -585,6 +611,7 @@ def _(burnin, plt, sns, μ_chain_mcmc):
     plt.ylabel('Sample')
     plt.xlim(0, None)
     sns.despine()
+    plt.show()
     return
 
 
@@ -618,7 +645,8 @@ def _(mo):
 def _(burnin, logposteriors, plt):
     plt.plot(logposteriors[burnin:], lw=1)
     plt.xlabel('Iteration')
-    plt.ylabel('Log posterior');
+    plt.ylabel('Log posterior')
+    plt.show()
     return
 
 
@@ -647,6 +675,7 @@ def _(green, plt, red, sns, μ, μ_samples_mcmc):
     plt.ylabel('Probability')
     plt.legend()
     sns.despine()
+    plt.gcf()
     return
 
 
@@ -668,6 +697,7 @@ def _(np, plt, scipy, η, μ_samples_mcmc):
     plt.xlim(-η * 5, η * 5)
     plt.xlabel('$\\mu_{i+1}-\\mu_i$')
     plt.ylabel('Frequency')
+    plt.show()
     return
 
 
@@ -692,6 +722,7 @@ def _(np, plt, sns, μ_samples_mcmc):
     plt.xlabel('lag $k$')
     plt.ylabel('$cor(\\mu_{i+k}, \\; \\mu_i)$')
     sns.despine()
+    plt.show()
     return
 
 
@@ -709,7 +740,7 @@ def _(mo):
 
 @app.cell
 def _():
-    import emcee # python -m pip install emcee
+    import emcee
 
     return (emcee,)
 
@@ -747,7 +778,7 @@ def _(X_poi, emcee, guesses, log_posterior, nburn, ndim, np, nsteps, nwalkers):
     # sampler.chain.shape = (nwalkers, nsteps, ndim)
     # discard burn-in points and flatten with ravel()
     μ_samples_emcee = sampler.chain[:, nburn:, :].ravel()
-    return μ_samples_emcee, sampler
+    return sampler, μ_samples_emcee
 
 
 @app.cell(hide_code=True)
@@ -763,7 +794,7 @@ def _(μ, μ_samples_emcee):
     μ_hat_emcee = μ_samples_emcee.mean()
     σ_hat_emcee = μ_samples_emcee.std()
     print('μ = {} \nμ_hat = {:.4f} +/- {:.4f}'.format(μ, μ_hat_emcee, σ_hat_emcee))
-    return σ_hat_emcee, μ_hat_emcee
+    return μ_hat_emcee, σ_hat_emcee
 
 
 @app.cell(hide_code=True)
@@ -786,6 +817,7 @@ def _(blue, nburn, plt, sampler, sns):
     _axes[1].set_xlabel('μ')
     _fig.tight_layout()
     sns.despine()
+    plt.show()
     return
 
 
@@ -810,6 +842,7 @@ def _(green, plt, red, sns, μ, μ_hat_emcee, μ_samples_emcee, σ_hat_emcee):
     plt.ylabel('Posterior')
     plt.legend()
     sns.despine()
+    plt.show()
     return
 
 
@@ -845,6 +878,8 @@ def _():
 def _(mo):
     mo.md(r"""
     Here we build the model and sample from the posterior using the default sampler, [NUTS](http://www.stat.columbia.edu/~gelman/research/published/nuts.pdf).
+
+    **Note:** this cell fails in VS Code but succeeds in Marimo editor.
     """)
     return
 
@@ -980,16 +1015,16 @@ def _(mo):
     mo.md(r"""
     # Over-dispersed Poisson model for count data
 
-    Here we assume that the measurements $\{X_i\}$ are still drawn from a Poisson distribution, but the expected values $\mu_i$ changes from leaf to leaf.
+    Here we assume that the measurements $\{x_i\}$ are still drawn from a Poisson distribution, but the expected values $\mu_i$ changes from leaf to leaf.
     We assume it is drawn from a [Gamma distrubtion](https://en.wikipedia.org/wiki/Gamma_distribution#Related_distributions) with shape $r$ and scale $\phi$ ( with expected value $r\phi$ and variance $r\phi^2$):
     $$
     \mu_i \sim Gamma(r, \phi) \\
-    X_i \sim Poi(\mu_i)
+    x_i \sim Poi(\mu_i)
     $$
 
     We note the model parameters as $\theta = (r, \phi)$.
 
-    Our data is still $\{X_i\}$, but the model is now _compound_, as it includes a model for the measurements $Poi(\mu_i)$ and a model for the Poisson parameter $Gamma(r, \phi)$.
+    Our data is still $\{x_i\}$, but the model is now _compound_, as it includes a model for the measurements $Poi(\mu_i)$ and a model for the Poisson parameter $Gamma(r, \phi)$.
 
     ## Synthetic data from over-dispersed Poisson model
 
@@ -999,11 +1034,12 @@ def _(mo):
 
 
 @app.cell
-def _(rng):
+def _(np):
+    _rng = np.random.default_rng(87)
     n_gamma = 150
     θ = r, φ = (5, 2)
-    _μi = rng.gamma(r, scale=φ, size=n_gamma)
-    X_gamma = rng.poisson(_μi)
+    _μi = _rng.gamma(r, scale=φ, size=n_gamma)
+    X_gamma = _rng.poisson(_μi)
     return X_gamma, n_gamma, r, θ, φ
 
 
@@ -1014,7 +1050,7 @@ def _(X_gamma, n_gamma, np, plt, r, red, sns, φ):
     _ax.plot(np.arange(n_gamma), X_gamma, '.k')
     _ax.axhline(r * φ, linewidth=3, color=red)
     _ax.set_xlabel('Measurement, $i$')
-    _ax.set_ylabel('# Mites, $X_i$')
+    _ax.set_ylabel('Count, $X_i$')
     _ax = _axes[1]
     _ax.hist(X_gamma, bins=10, density=True)
     _ax.axvline(r * φ, linewidth=3, alpha=1, color=red)
@@ -1022,6 +1058,7 @@ def _(X_gamma, n_gamma, np, plt, r, red, sns, φ):
     _ax.set_xlabel('Count, $X_i$')
     _fig.tight_layout()
     sns.despine()
+    plt.show()
     return
 
 
@@ -1034,13 +1071,18 @@ def _(mo):
 
 
 @app.cell
-def _(X_gamma, scipy, θ):
+def _(X_gamma, np, scipy, θ):
+    @np.vectorize(signature='(2)->()', excluded=(1,))
     def log_likelihood_negbin(θ, X):
         r, φ = θ
-        p = φ / (φ + 1)
+        p = 1 / (φ + 1)
         return scipy.stats.nbinom(r, p).logpmf(X).sum()
-    log_likelihood_negbin(θ, X_gamma)
-    return (log_likelihood_negbin,)
+    print(log_likelihood_negbin(θ, X_gamma))
+
+    def neg_log_likelihood_negbin(θ, X):
+        return -log_likelihood_negbin(θ, X)
+    print(neg_log_likelihood_negbin(θ, X_gamma))
+    return (neg_log_likelihood_negbin,)
 
 
 @app.cell(hide_code=True)
@@ -1052,18 +1094,15 @@ def _(mo):
 
 
 @app.cell
-def _(X_gamma, log_likelihood_negbin, r, scipy, φ):
-    def neg_log_likelihood(θ, X):
-        return -log_likelihood_negbin(θ, X)
-
+def _(X_gamma, neg_log_likelihood_negbin, r, scipy, φ):
     def mle(X, verbose=False, full_path=False):
-        r_guess = X.mean()
-        φ_guess = r_guess * r_guess / (X.var(ddof=1) - r_guess)  # eq 3 in Bliss and Fisher 1953
-        return scipy.optimize.fmin(func=neg_log_likelihood, x0=(r_guess, φ_guess), args=(X,), disp=verbose, retall=full_path)
+        r_guess = X.mean() ** 2 / (X.var(ddof=1) - X.mean())  # eq 3 in Bliss and Fisher 1953
+        φ_guess = X.mean() / r_guess
+        return scipy.optimize.fmin(func=neg_log_likelihood_negbin, x0=(r_guess, φ_guess), args=(X,), disp=verbose, retall=full_path)
     θ_hat_mle = mle(X_gamma, verbose=True)
     r_hat_mle, φ_hat_mle = θ_hat_mle  # function to minimize with respect to first argument
     print('r = {} \tr_hat = {:.4f}\nϕ = {}\tϕ_hat = {:.4f}'.format(r, r_hat_mle, φ, φ_hat_mle))  # initial guess  # additional arguments to func  # no prints
-    return
+    return r_hat_mle, φ_hat_mle
 
 
 @app.cell(hide_code=True)
@@ -1094,10 +1133,10 @@ def _(mo):
 @app.cell
 def _(X_gamma, n_gamma, pm):
     with pm.Model(coords={'leaf': range(n_gamma)}) as gamma_poisson_model:
-        _r_ = pm.Uniform('r', lower=0, upper=10)
-        _φ_ = pm.Uniform('ϕ', lower=0, upper=5)
-        _μ_ = pm.Gamma('μ', alpha=_r_, beta=1 / _φ_, dims='leaf')
-        _X_obs = pm.Poisson('X_obs', mu=_μ_, observed=X_gamma)
+        _r = pm.Uniform('r', lower=0, upper=10)
+        _φ = pm.Uniform('ϕ', lower=0, upper=5)
+        _μ = pm.Gamma('μ', alpha=_r, beta=1/_φ, dims='leaf')
+        _X_obs = pm.Poisson('X_obs', mu=_μ, observed=X_gamma)
         idata_gamma_poisson = pm.sample(draws=10000)
     return (idata_gamma_poisson,)
 
@@ -1110,8 +1149,9 @@ def _(az, idata_gamma_poisson, plt):
 
 
 @app.cell
-def _(az, idata_gamma_poisson, r, φ):
-    print('r={}, ϕ={}'.format(r, φ))
+def _(az, idata_gamma_poisson, r, r_hat_mle, φ, φ_hat_mle):
+    print('True: r={}, ϕ={}'.format(r, φ))
+    print('MLE: r_mle={:.3f}, ϕ_mle={:.3f}'.format(r_hat_mle, φ_hat_mle))
     isummary_gamma = az.summary(idata_gamma_poisson, var_names=['r', 'ϕ'], round_to=4)
     r_hat_gamma = isummary_gamma.loc['r', 'mean']
     φ_hat_gamma = isummary_gamma.loc['ϕ', 'mean']
@@ -1120,10 +1160,11 @@ def _(az, idata_gamma_poisson, r, φ):
 
 
 @app.cell
-def _(az, green, idata_gamma_poisson, r, red, φ):
+def _(az, green, idata_gamma_poisson, plt, r, red, φ):
     _grid = az.plot_pair(idata_gamma_poisson, kind='kde', var_names=['r', 'ϕ'], marginals=True, point_estimate='mean', point_estimate_kwargs=dict(lw=1), point_estimate_marker_kwargs=dict(color=green, marker='o', zorder=100, ec='k'), reference_values={'r': r, 'ϕ': φ}, reference_values_kwargs=dict(color=red))
-    _grid[0, 0].set_xlim(4, 8)
-    _grid[1, 1].set_ylim(1, 3)
+    _grid[0, 0].set_xlim(2, 8)
+    _grid[1, 1].set_ylim(1, 3.5)
+    plt.show()
     return
 
 
@@ -1139,8 +1180,9 @@ def _(mo):
 def _(az, idata_gamma_poisson, plt, r, red, φ):
     az.plot_forest(idata_gamma_poisson, var_names=['μ'], kind='forestplot', combined=True);
     plt.axvline(r * φ, color=red);
-    plt.axvline(r * φ + (r * φ * φ)**0.5, color=red, ls='dashed');
-    plt.axvline(r * φ - (r * φ * φ)**0.5, color=red, ls='dashed');
+    plt.axvline(r * φ + (r * φ * φ)**0.5, color=red, ls='dashed')
+    plt.axvline(r * φ - (r * φ * φ)**0.5, color=red, ls='dashed')
+    plt.show()
     return
 
 
@@ -1207,9 +1249,9 @@ def _(isummary_mites):
 
 
 @app.cell
-def _(az, green, idata_mites):
+def _(az, green, idata_mites, plt):
     _grid = az.plot_pair(idata_mites, kind='kde', var_names=['r', 'ϕ'], marginals=True, point_estimate='mean', point_estimate_kwargs=dict(lw=1), point_estimate_marker_kwargs=dict(color=green, marker='o', zorder=100, ec='k'))
-    _grid[0, 0].set_xlim(0.5, 2)
+    plt.show()
     return
 
 

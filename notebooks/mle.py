@@ -7,7 +7,7 @@
 
 import marimo
 
-__generated_with = "0.23.6"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
@@ -23,6 +23,9 @@ def _():
         context='talk'
     )
     red, blue, green = sns.color_palette('Set1', 3)
+    import os
+    if os.path.basename(os.getcwd()) != 'notebooks':
+        os.chdir('notebooks')
     return blue, green, mo, np, plt, red, scipy, sns
 
 
@@ -107,12 +110,12 @@ def _(X_poi, n_poi, np, plt, red, sns, μ):
     _ax.plot(np.arange(n_poi), X_poi, '.k')
     _ax.axhline(μ, linewidth=3, color=red)
     _ax.set_xlabel('Leaf, $i$')
-    _ax.set_ylabel('# Mites, $X_i$')
+    _ax.set_ylabel('# Mites, $x_i$')
     _ax = _axes[1]
     _ax.hist(X_poi, bins=10, density=True)
     _ax.axvline(μ, linewidth=3, alpha=1, color=red)
     _ax.set_ylabel('Density')
-    _ax.set_xlabel('# Mites, $X_i$')
+    _ax.set_xlabel('# Mites, $x_i$')
     _fig.tight_layout()
     sns.despine()
     plt.gcf()
@@ -672,18 +675,18 @@ def _(mo):
 
 @app.cell
 def _(X_gamma, log_likelihood_negbin, θ):
-    def neg_log_likelihood(θ, X):
+    def neg_log_likelihood_negbin(θ, X):
         return -log_likelihood_negbin(θ, X)
-    print(neg_log_likelihood(θ, X_gamma))
-    return (neg_log_likelihood,)
+    print(neg_log_likelihood_negbin(θ, X_gamma))
+    return (neg_log_likelihood_negbin,)
 
 
 @app.cell
-def _(X_gamma, neg_log_likelihood, r, scipy, φ):
+def _(X_gamma, neg_log_likelihood_negbin, r, scipy, φ):
     def mle(X, verbose=False, full_path=False):
         r_guess = X.mean() ** 2 / (X.var(ddof=1) - X.mean())  # eq 3 in Bliss and Fisher 1953
         φ_guess = X.mean() / r_guess
-        return scipy.optimize.fmin(func=neg_log_likelihood, x0=(r_guess, φ_guess), args=(X,), disp=verbose, retall=full_path)
+        return scipy.optimize.fmin(func=neg_log_likelihood_negbin, x0=(r_guess, φ_guess), args=(X,), disp=verbose, retall=full_path)
     θ_hat_gamma = mle(X_gamma, verbose=True)
     r_hat_gamma, φ_hat_gamma = θ_hat_gamma  # function to minimize with respect to first argument
     print('r = {} \tr_hat = {:.4f}\nϕ = {}\tϕ_hat = {:.4f}'.format(r, r_hat_gamma, φ, φ_hat_gamma))  # initial guess  # additional arguments to func  # no prints
