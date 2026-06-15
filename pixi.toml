@@ -20,6 +20,10 @@ scipy = "*"
 sympy = "*"
 numba = ">=0.63.1,<0.64"
 pyzmq = ">=27.1.0,<28"
+emcee = ">=3.1.6,<4"
+pymc = ">=5.28.5,<6"
+arviz = ">=0.23.4,<0.24"
+marimo = ">=0.23.9,<0.24"
 
 [pypi-dependencies]
 marimo = ">=0.23.3"
