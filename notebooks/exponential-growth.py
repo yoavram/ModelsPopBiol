@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
@@ -11,11 +11,9 @@ def _():
     import numpy as np
     import pandas as pd
     import scipy.stats
-    import scipy.optimize
     import seaborn as sns
     sns.set_context('talk')
     red, blue, green = sns.color_palette('Set1', 3)
-
     return blue, mo, np, pd, plt, red, scipy, sns
 
 
@@ -203,8 +201,8 @@ def _(mo):
     where here $t$ is the number of year since the first year in the dataset, 1960.
 
     Remember, the model parameters can be interpreted as follows:
-    - the "intercept" $y_0$ is the estimate for log size in year zero, and
-    - the "slope" $r$ is the estimate for the specific growth rate.
+    - the "intercept" $y_0$ is the estimate for log size in year zero,
+    - the "slope" $r$ is the estimate for the specific growth rate,
 
     Let's get the time and log population for Israel as an example.
     We change $t$ to start at zero rather than 1960, and we get the NumPy array from the Pandas dataframe.
@@ -251,7 +249,7 @@ def _(plt, sns, t, y):
     _fig.tight_layout()
     sns.despine()
     plt.gcf()
-    return r, y0
+    return
 
 
 @app.cell(hide_code=True)
@@ -267,7 +265,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Maximum likelihood & least squares
+    # Maximum likelihood estimation and least squares
 
     The exponential growth model above means that the log population size is a linear function of time.
     In the simplest form of linear model, we assume that the data ($y$) has a [normal (or Gaussian) distribution](https://en.wikipedia.org/wiki/Normal_distribution) around the linear estimator ($\widehat{y})$.
@@ -277,11 +275,11 @@ def _(mo):
 
     Usually, when we speak about probabilities, we ask **"what is the probability to see this data given this model"** - when I say "model" I mean something like
     $$
-    \widehat{y} = rt+y_0
+    \widehat{y}_i = rt_i+y_0
     $$
     with given values for $r$ and $y_0$, such as $r=1$ and $y_0=0$, and a normal distribution of observed values around the expected value,
     $$
-    y \sim \mathit{Normal}(\widehat{y}, \sigma^2)
+    y_i \sim \mathit{Normal}(\widehat{y}_i, \sigma^2)
     $$
     where $\sigma^2$ is the variance of the normal distribution.
 
@@ -295,13 +293,10 @@ def _(mo):
     mo.md(r"""
     In general, the probability density function for an observed value $y$ is defined by the normal distribution as
     $$
-    \phi(y) = \frac{1}{\sqrt{2 \pi \sigma^2}} exp\bigg(-\frac{(y-\widehat{y})^2}{2\sigma^2}\bigg).
+    p(y_i~|~t_i,r, y_0, \sigma) = \frac{1}{\sqrt{2 \pi \sigma^2}} exp\bigg(-\frac{(y_i-\widehat{y}_i)^2}{2\sigma^2}\bigg).
     $$
 
-    So, for example, given this model ($r=2, y_0=0 \Rightarrow y=2t$), if $t=1$ then the probability for $y=2.5$ is:
-    $$
-    \phi(8) = \frac{1}{\sqrt{2 \pi \sigma^2}} exp\bigg(-\frac{(2.5 - 2)^2}{2\sigma^2}\bigg).
-    $$
+    When viewed as a function of the parameters $r, y_0, \sigma$, this is the **likelihood function**.
     """)
     return
 
@@ -309,15 +304,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Now, we are ready to find $r$ and $y_0$, and this is where *likelihood* comes into place, and its definition is straight-forward:
-
-    **The likelihood of the model
-    $$
-    y \sim N(\widehat{y}=rt+y_0, \sigma)
-    $$
-    given observed data $\{(t_i, y_i)\}_i$ is the probability of seeing data given the model.**
-
-    If we have mutliple data points (we do!) we can just multiply all of them under the assumption that each data point (here, game, so... not sure that we can do this) is *independent* (in the probability sense of independence, that is, knowing what happened in one of them doesn't change the probability of the other one occuring).
+    If we have mutliple data points (we do!) we can just multiply all of them under the assumption that each data point is *independent*. In this case, we assume that the measurement errors $y_i - \widehat{y}_i$ are independent. Thus, the likelihood is
     """)
     return
 
@@ -325,11 +312,10 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    So the likelihood of the model $y \sim Normal(\widehat{y}=rt+y_0, \sigma^2)$ given data points $\{(x_i, y_i)\}_i$, is
-
     $$
-    \mathcal{L}(a,b | \{x_i, y_i\}_i) = (2 \pi \sigma^2)^{-n/2} \prod_{i=1}^{n}{ exp\bigg(-\frac{(y_i-rt_i-y_0)^2}{2\sigma^2}\bigg)}
+    p(Y~|~T,r,y_0,\sigma) = (2 \pi \sigma^2)^{-n/2} \prod_{i=1}^{n}{ exp\left(-\frac{(y_i-rt_i-y_0)^2}{2\sigma^2}\right)}
     $$
+    where $Y=(y_1,\ldots,y_n)$ and $T=(t_1,\ldots,t_n)$.
     """)
     return
 
@@ -343,15 +329,15 @@ def _(mo):
 
     Now, our likelihood $\mathcal{L}$ is a product of exponents, so we can take the log-likelihood (literally the log of the likelihood) to get a simpler expression
     $$
-    \log\mathcal{L} = \\
+    \log p = \\
     \log (2 \pi \sigma^2)^{-n/2} + \log{\prod_{i=1}^{n}{ exp\bigg(-\frac{(y_i-rt_i-y_0)^2}{2\sigma^2}\bigg)}} = \\
     -\frac{n}{2}\log{(2 \pi \sigma^2)} + \sum_{i=1}^{n}{-\frac{(y_i-rt_i-y_0)^2}{2\sigma^2}} = \\
     -\frac{n}{2}\log{(2 \pi \sigma^2)} - \frac{1}{2\sigma^2} \sum_{i=1}^{n}{(y_i-rt_i-y_0)^2} \Rightarrow \\
-    \textit{argmax}_{a,b}{\left(-\log\mathcal{L}\right)} = \textit{argmax}_{a,b}{\sum_{i=1}^{n}{(y_i-rt_i-y_0)^2}}
+    \textit{argmax}_{r,y_0}{\left(-\log p\right)} = \textit{argmax}_{r,y_0}{\sum_{i=1}^{n}{(y_i-rt_i-y_0)^2}}
     $$
 
     Note that
-    - $\log{\mathcal{L}}$ is an increasing function of $\mathcal{L}$ so maximizing the log-likelihood is equivalent to maximizing the likelihood
+    - $\log{p}$ is an increasing function of $p$ so maximizing the log-likelihood is equivalent to maximizing the likelihood
     - $a$ and $b$ only appear in the sum-of-squares, which is prepended by a negative sign, so minimizing the sum-of-squares is equivalent to maximizing the log-likelihood
     - if we only care about the best estimate of $r$ and $y_0$ then we don't really care about the variance $\sigma^2$ (we would care if we wanted to have some statistical measure of precision or confidence)
 
@@ -364,136 +350,31 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    In tihs case of a linear model there is a formula to find the maximum likelihood values of $r$ and $y_0$.
-    But not in every case there is such a formula, so let's continue as if there is no formula.
-
-    Let's calculate the sum-of-squares.
-    Note that Pandas aggregation methods (such as `sum` or `mean`) ignore NaN values, but this is not always the case in other numerical packages.
+    In this case of a linear model, there is an **analytical formula** for the maximum likelihood estimates of $r$ and $y_0$.
+    Taking derivatives of the RSS with respect to $r$ and $y_0$ and setting them to zero,
+    $$
+    \frac{\partial RSS}{\partial r} = \sum_{i=1}^{n}{rt_i^2 + t_i y_0 - t_i y_i} = 0 \\
+    \frac{\partial RSS}{\partial y_0} = \sum_{i=1}^{n}{rt_i + y_0 - y_i} = 0
+    $$
+    Solving these equations gives the maximum likelihood estimates:
+    $$
+    \hat r = \frac{\sum_{i=1}^{n}{(t_i - \bar{t})(y_i - \bar{y})}}{\sum_{i=1}^{n}{(t_i - \bar{t})^2}} \\
+    \hat y_0 = \bar{y} - \hat{r} \bar{t}
+    $$
     """)
     return
 
 
 @app.cell
-def _(numba, r, t, y, y0):
-    @numba.njit
-    def sumsquares(r, y0, t, y):
-        _yhat = r * t + y0
-        residuals = y - _yhat
-        residuals = _yhat - y
-        return (residuals * residuals).sum()
-    sumsquares(r, y0, t, y)
-    return (sumsquares,)
+def _(t, y):
+    def mle(t, y):
+        r_hat = ((t - t.mean()) * (y - y.mean())).sum() / ((t - t.mean())**2).sum()
+        y0_hat = y.mean() - r_hat * t.mean()
+        return r_hat, y0_hat
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Now we would like to find $r$ and $y_0$ that minimize the function `sumsquares`.
-
-    # Gradient descent
-
-    One way to do this is with *gradient descent*.
-    This is an iterative algorithm.
-    In each step, we calculate that gradient of the RSS function respect to $r$ and $y_0$ (the gradient is just the vector of derivatives):
-    $$
-    RSS(a,b,x,y) = \sum_{i=1}^{n}{(y_i-rt_i-y_0)^2} \\
-    \frac{\partial RSS}{\partial r} = 2\sum_{i=1}^{n}{rt_i^2 + t_iy_0 - t_iy_i} \\
-    \frac{\partial RSS}{\partial y_0} = 2\sum_{i=1}^{n}{rt_i + y_0 - y_i} \\
-    $$
-
-    We then "descend" (minimize) the function just a tiny bit by updating $r$ and $y_0$ in the oppositve direction of the gradient:
-    $$
-    r(k) = r(k-1) - \eta \frac{\partial SS}{\partial r}  \\
-    y_0(k) = y_0(k-1) - \eta \frac{\partial SS}{\partial y_0} \\
-    $$
-    where $\eta$ is the size of the step we take (the "tiny bit"), also sometimes called the *learning rate*. We'll talk later about methods in which this rate can be learned or adjusted over time.
-
-    **Home exercise**: Verify our calculation of $\frac{\partial RSS}{\partial r}$ and $\frac{\partial RSS}{\partial y_0}$.
-    """)
-    return
-
-
-@app.cell
-def _(numba):
-    @numba.njit
-    def gradient_descent(r, y0, t, y, η=0.00001):
-        dr  = (2*r*t*t + 2*t*y0 - 2*t*y).sum()
-        dy0 = (2*r*t + 2*y0 - 2*y).sum()
-        return r - η * dr, y0 - η * dy0
-
-    return (gradient_descent,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    The last technical details is the stopping condition.
-    We can set the gradient descent to stop when the relative difference between the sum of squares of two iterations is less than some value, or when the change in parameters from one iteration to the next is smaller than some value. But we will just set it to run for a fixed number of iterations.
-    """)
-    return
-
-
-@app.cell
-def _():
-    import numba
-
-    return (numba,)
-
-
-@app.cell
-def _(gradient_descent, numba, sumsquares):
-    @numba.njit
-    def fit_model(t, y, r=0, y0=0, iters=30000, verbose=True):    
-        for k in range(iters+1):
-            r, y0 = gradient_descent(r, y0, t, y)
-            if k % (iters//10) == 0:
-                RSS = sumsquares(r, y0, t, y)
-                if verbose: 
-                    print(k, "-\tRSS =", round(RSS, 5), "\tr =", round(r, 4), "\ty0 =", round(y0, 4))
-        return r, y0
-
-    return (fit_model,)
-
-
-@app.cell
-def _(fit_model, t, y):
-    θhat = fit_model(t, y)
-    return
-
-
-@app.cell
-def _(fit_model, t, y):
-    # magic command not supported in marimo; please file an issue to add support
-    # %%time
-    fit_model(t, y, verbose=False);
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Note that there are more efficient ways to find the maximum likelihood, for example using `scipy.optimize.fmin`:
-    """)
-    return
-
-
-@app.cell
-def _(numba, sumsquares):
-    @numba.njit
-    def loss(θ, t, y):
-        r, y0 = θ
-        return sumsquares(r, y0, t, y)
-
-    return (loss,)
-
-
-@app.cell
-def _(loss, r, scipy, sumsquares, t, y, y0):
-    # magic command not supported in marimo; please file an issue to add support
-    # %%time
-    θhat_1 = scipy.optimize.fmin(loss, (r, y0), args=(t, y))
-    print('RSS={:.6f},\tr={:.4f},\ty0={:.4f}'.format(sumsquares(*θhat_1, t, y), *θhat_1))  # loss function to minimize  # guess  # arguments to loss function
-    return (θhat_1,)
+    θhat_mle = mle(t, y)
+    print('r={:.4f}, y0={:.4f}'.format(*θhat_mle))
+    return (θhat_mle,)
 
 
 @app.cell(hide_code=True)
@@ -515,17 +396,17 @@ def _(mo):
 
 
 @app.cell
-def _(plt, red, sns, t, y, θhat_1):
+def _(plt, red, sns, t, y, θhat_mle):
     def plot_model(θ, t, y, color=red):
         r, y0 = θ
-        _yhat = r * t + y0
+        yhat = r * t + y0
         plt.plot(t, 10 ** y, 'o')
-        plt.plot(t, 10 ** _yhat, '-', color=color)
+        plt.plot(t, 10 ** yhat, '-', color=color)
         plt.xlabel('Years since 1960')
         plt.ylabel('Population size')
         sns.despine()
         print('r={:.3f}, y0={:.3f}'.format(r, y0))
-    plot_model(θhat_1, t, y)
+    plot_model(θhat_mle, t, y)
     plt.gcf()
     return
 
@@ -611,7 +492,7 @@ def _(scipy, t, y):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    The P-value gives the probability to get this data if the null hypothesis is right; in this case, the null hypothesis is $r=0$--that the growth rate is zero.
+    The P-value gives the probability to get this data if the null hypothesis is right; in this case, the null hypothesis is $r=0$: that the growth rate is zero.
     """)
     return
 
@@ -653,11 +534,9 @@ def _():
 
 
 @app.cell
-def _(sm, t, y):
-    # magic command not supported in marimo; please file an issue to add support
-    # %%time
-    T = sm.add_constant(t) # for intercept
-    results = sm.OLS(y, T).fit() # note its y and then t
+def _(np, pd, sm, t, y):
+    T = pd.DataFrame({'r': t, 'y0': np.ones(len(t))})
+    results = sm.OLS(y, T).fit()
     return (results,)
 
 
@@ -705,8 +584,9 @@ def _():
 
 
 @app.cell
-def _(pz):
-    pz.maxent(pz.LogNormal(), 0.011, 0.021, 0.95);
+def _(plt, pz):
+    pz.maxent(pz.LogNormal(), 0.011, 0.021, 0.95)
+    plt.show()
     return
 
 
@@ -719,8 +599,9 @@ def _(mo):
 
 
 @app.cell
-def _(pz, y):
-    pz.maxent(pz.LogNormal(), y[0]/2, y[0]*2, 0.95);
+def _(plt, pz, y):
+    pz.maxent(pz.LogNormal(), y[0]/2, y[0]*2, 0.95)
+    plt.show()
     return
 
 
@@ -733,8 +614,9 @@ def _(mo):
 
 
 @app.cell
-def _(pz):
-    pz.Exponential(0.1).plot_pdf(pointinterval=True);
+def _(plt, pz):
+    pz.Exponential(0.1).plot_pdf(pointinterval=True)
+    plt.show()
     return
 
 
@@ -763,6 +645,8 @@ def _(mo):
 
 @app.cell
 def _():
+    import pytensor
+    pytensor.config.linker = 'py' # to avoid error in vs code
     import pymc as pm
     import arviz as az
 
@@ -773,11 +657,11 @@ def _():
 def _(pm, t, y):
     model = pm.Model()
     with model:
-        _r_ = pm.LogNormal('r', mu=-4.16, sigma=0.16)
-        _y0_ = pm.LogNormal('y0', mu=1.96, sigma=0.33)
-        σ_ = pm.Exponential('σ', lam=0.1)
-        y_obs = pm.Normal('y', mu=_r_ * t + _y0_, sigma=σ_, observed=y)
-        idata = pm.sample()
+        _r = pm.LogNormal('r', mu=-4.16, sigma=0.16)
+        _y0 = pm.LogNormal('y0', mu=1.96, sigma=0.33)
+        _σ = pm.Exponential('σ', lam=0.1)
+        y_obs = pm.Normal('y', mu=_r * t + _y0, sigma=_σ, observed=y)
+        idata = pm.sample(cores=1)
     return (idata,)
 
 
@@ -831,10 +715,10 @@ def _(mo):
 @app.cell
 def _(az, blue, idata_1, plt, sns, t, y):
     samples = az.extract(idata_1, num_samples=100, rng=0).to_dataframe()
-    _r_ = samples['r'].values
-    _y0_ = samples['y0'].values
+    _r = samples['r'].values
+    _y0 = samples['y0'].values
     t_ = t.reshape((-1, 1))
-    _yhat = _r_ * t_ + _y0_
+    _yhat = _r * t_ + _y0
     plt.plot(t, 10 ** _yhat, '-k', alpha=0.1)
     plt.plot(t, 10 ** y, '.', color=blue)
     plt.xlabel('Years since 1960')
