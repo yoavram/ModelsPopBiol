@@ -704,15 +704,15 @@ def _():
 
 @app.cell
 def _(df_4):
-    # create columns without spaces
-    df_4['HongKong'] = df_4['Hong Kong']
-    df_4['SouthKorea'] = df_4['South Korea']
-    return
+    df_5 = df_4.copy()
+    df_5['HongKong'] = df_5['Hong Kong']
+    df_5['SouthKorea'] = df_5['South Korea']
+    return (df_5,)
 
 
 @app.cell
-def _(bmb, df_4):
-    logistic_model_1 = bmb.Model('recovered ~ sex + age + HongKong + SouthKorea + Philippines + Singapore', df_4, family='bernoulli')
+def _(bmb, df_5):
+    logistic_model_1 = bmb.Model('recovered ~ sex + age + HongKong + SouthKorea + Philippines + Singapore', df_5, family='bernoulli')
     idata = logistic_model_1.fit(draws=1000, idata_kwargs={'log_likelihood': True})
     return idata, logistic_model_1
 
@@ -751,7 +751,7 @@ def _(az, idata_1, logistic_model_1, np, pd, plt, sns):
             pred_data = base_pred_data.copy()
             pred_data[_country] = 1
             pred_idata = logistic_model_1.predict(idata_1, data=pred_data, inplace=False)
-            predictions = pred_idata.posterior['recovered_mean']
+            predictions = pred_idata.posterior['p']
             plt.plot(age, predictions.mean(['chain', 'draw']), color=colors[2 * j + _i], lw=2, label=_country + sexes[_i])
             az.plot_hdi(age, predictions, color=colors[2 * j + _i])
     plt.xlabel('Age')
