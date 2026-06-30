@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
@@ -11,8 +11,7 @@ def _():
     import numpy as np
     import numba
     import scipy.optimize
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import roc_curve
+    from scipy.special import expit
     import pandas as pd
     import seaborn as sns
     blue, green, red = sns.color_palette('muted', 3)
@@ -23,19 +22,7 @@ def _():
     warnings.simplefilter('ignore', UserWarning)
     from numba import NumbaDeprecationWarning
     warnings.simplefilter('ignore', NumbaDeprecationWarning)
-    return (
-        LogisticRegression,
-        blue,
-        mo,
-        np,
-        numba,
-        pd,
-        plt,
-        red,
-        roc_curve,
-        scipy,
-        sns,
-    )
+    return blue, expit, mo, np, pd, plt, red, scipy, sns
 
 
 @app.cell(hide_code=True)
@@ -153,9 +140,7 @@ def _(mo):
 
 @app.cell
 def _(countries, df_3):
-    _female = df_3['sex'] == 'F'
-    df_3.loc[_female, 'sex'] = 0.5
-    df_3.loc[~_female, 'sex'] = -0.5
+    df_3['sex'] = df_3['sex'].map({'F': 0.5, 'M': -0.5})
     var_names = ['recovered', 'sex', 'age'] + countries.tolist()
     df_4 = df_3[var_names].copy()
     df_4 = df_4.dropna()
@@ -210,22 +195,29 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Logistic regression
+    # Binary logistic regression
+    When there are only two class labels (e.g., 0 and 1; cat and dog), the model is known as **binary logistic regression** (if there are more, it is called multiple/multinomial logistic regression or sometimes softmax regression).
 
-    Let's try and use logistic regression to clear this up (if we can).
-    How does it work?
+    Let's write the model.
+    Denote the number of individuals by $n$.
+    We assume that the outcome $y_i \in \{0,1\}$ of individual $i$ is **Bernoulli distributed** with probability $\hat{y}_i$.
+    We still have a linear model, but not directly for $\hat{y}_i$, because it is a probability and therefore constrained to be between 0 and 1. Instead, we assume that $z_i=\textit{logit}{(\hat{y}_i)}=\log{\frac{\hat{y}_i}{1-\hat{y}_i}}$ is a linear function of $m$ features, $x_i=(x_{i,1}, \ldots, x_{i,m})$, because $\textit{logit}{(\hat{y}_i)}$ can be any real number.
 
-    We briefly mentioned that when predicting integer values the normal distribution, and hence the *normal linear model*, is not be the best model, and demonstrated that a [GLM](https://en.wikipedia.org/wiki/Generalized_linear_model) with a Poisson distribution and an log link function intead of a normal distribution performed better.
-    We will do a similar trick here.
-
-    We first use a linear model (as we did before) to predict the **log-odds** for survival.
-
-    Odds here is actually short for odds-ratio (OR), which is just the ratio of the probability that something happens and the probability that it does not happen:
+    Thus,
     $$
-    OR =
-    \frac{P(\text{Survived})}{P(\text{Died})}
+    z_i = \sum_{j=1}^{m}{w_j x_{i,j}} + b $$
     $$
-    so when the odds-ratio is 1, both events are as likley, and when it is >1 (<1) survival (death) is more likely.
+    \log{\frac{\hat{y}_i}{1-\hat{y}_i}} = z_i $$
+    $$
+    y_i \sim \text{Ber}(\hat{y}_i)
+    $$
+    Here,  $W = (w_1, \ldots, w_m)$ are the model weights (coefficients) and $b$ is the bias (intercept).
+    They determine the additive effect of a unit change in the features on the log-odds of the outcome, or the multiplicative effect on the odds of the outcome.
+
+    The inverse of the logit function is called the _expit_ or **logistic function**, and hence the name of the regression method;
+    $$
+    \hat{y_i} = \frac{1}{1+e^{-z_i}}
+    $$
     """)
     return
 
@@ -233,231 +225,122 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    We use the odds-ratio instead of the probability itself, because it is a value between $-\infty$ and $\infty$, rather then between 0 and 1, which is important both for mathematical formality, as the linear model is unbounded, and for interpretation - the odds can be doubles again and again (2:1 becoming 4:1 becomnig 8:1...) whereas the probability cannot (what is the double of 75%?).
+    # Maximum likelihood estimation
 
-    The log-odds, which we mark as $z$, is the natural logarithm of the odds ratio.
+    From our model, the likelihood is
     $$
-    z =
-    \log{\frac{P(\text{Survived})}{P(\text{Died})}}
+    p(y_i=1 \mid x_i, W, b) \quad= \hat{y}_i $$
     $$
-    Why use the log-odds? Because (i) it is more mathematically convinient, as log-odds is symmetric in the probability, whereas odds is not, and (ii) it is easier to interpret, as we will see below.
-    """)
-    return
+    p(y_i=0 \mid x_i, W, b) = 1-\hat{y}_i
+    $$
+    where $W=(w_1, \ldots, w_m)$ are the model weights and $b$ is the bias, affecting the likelihood via $\hat{y}_i=1/\left(1+\exp{\left(-\sum_{j=1}^{m}{w_j x_{i,j}}-b\right)}\right)$.
 
+    This can also be written as
+    $$
+    p(y_i \mid x_{i}, W, b) = \hat{y}_i^{y_i} \cdot (1-\hat{y}_i)^{1-y_i}
+    $$
+    Assuming $y_i, y_k$ are independent for all $i,k$,
+    $$
+    p(Y \mid X, W, b) = \prod_{i=1}^{n}{\hat{y}_i^{y_i} \cdot (1-\hat{y}_i)^{1-y_i}}
+    $$
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    So to use a linear model for predicting the log-odds, we have $m$ features, $x_1, x_2, \ldots, x_m$, and we try to estimate coefficients $\mathbf{W} = (b, a_1, \ldots, a_m)$ such that
+    Therefore, the negative log likelihood (which again makes sense because we have a product of exponents) is
     $$
-    z = b + a_1 x_1 + \ldots + a_m x_m
+    NLL(W, b) = -\frac{1}{n}\log\left(\prod_{i=1}^{n}{\hat{y}_i^{y_i} \cdot (1-\hat{y}_i)^{1-y_i}}\right) =
+    -\frac{1}{n}\sum_{i=1}^{n}y_i \log{\hat{y}_i} + (1-y_i)\log{(1-\hat{y}_i)}
     $$
-    or
-    $$
-    z = \mathbf{X} \cdot \mathbf{W}
-    $$
-    gives us a good prediction of the true log-odds.
+    where we scale by the dataset size $n$ so that we can compare values between datasets of different sizes.
+    This function is called in information theory the [**cross entropy**](https://en.wikipedia.org/wiki/Cross-entropy) function, and in the deep learning context this name has stuck.
 
-    From the log-odds we can find the probability for the event to occur using the *logisitic* (hence the name of the method!) or the *expit* function (same function, different name):
+    Note that this function can be numerically unstable when $\hat{y}_i$ are close to zero or one.
+    A different way to write it is
     $$
-    P(\text{Survived}) = expit(z) = \frac{1}{1+e^{-z}}
+    NLL(W, b) = \frac{1}{n}\sum_{i=1}^{n}{z_i (1-y_i) + \log{\left(1+e^{-z_i}\right)}}
     $$
+
+    So here we compute the negative log likelihood or cross entropy function.
     """)
     return
 
 
 @app.cell
-def _(numba):
-    @numba.njit
+def _(np):
     def logodds(X, W, b):
-        Z = X @ W + b
-        return Z
+        return X @ W + b
 
-    return (logodds,)
+    def NLL(W, b, X, Y):
+        Z = logodds(X, W, b)
+        return (Z * (1-Y) + np.log(1 + np.exp(-Z))).mean()
+
+    return NLL, logodds
 
 
 @app.cell
-def _(X, logodds, np):
-    W = np.ones(X.shape[1])
-    b = 1
-    print(logodds(X, W, b)[:5])
+def _(NLL, X, Y, np):
+    W = np.linspace(0, 1, X.shape[1])
+    b = 0.0
+    print(NLL(W, b, X, Y))
     return W, b
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Maximum likelihood
+    # Gradients and the chain rule
 
-    Now we want to find suitable $a_i$ such that we make a good prediction.
-    We'll use *maximum likelihood* again.
+    To find the MLE we need to solve $\partial NLL / \partial W = 0$, which can be done using different gradient-based optimization algorithms.
+    For that we need to derive the gradient (Prob ML ch. 10.2.3.3).
 
-    Given data $(x, y)$ where $x = (x_1, \ldots, x_m)$ are some numbers and $y$ is either 0 or 1, the logistic model provides us an estimate $\widehat y$
-
-    $$
-    \widehat{y} = P(y=1)=\frac{1}{1+e^{-z}} = \frac{1}{1+e^{-b -a_1 x_1 - \ldots -a_m x_m}}
-    $$
-
-    The likelihood of this model is
-
-    $$
-    \mathcal{L}(b, a_1, \ldots, a_m \mid x_1, \ldots, x_m, y) =
-    P(y \mid b, a_1, \ldots, a_m, x_1, \ldots, x_m) =
-    \cases{
-        \widehat{y}, & y=1 \\
-        1-\widehat{y}, & y=0
-    }
-    $$
-
-    If we have many $(x,y)$ pairs, and we will **assume that each pair is independent** (which maybe we can't always do, and specifically in the Titanic case we probably shouldn't do, but ok) then the joint likelihood of all the pairs is just the product of all the pair likelihoods: the product is used because the joint probability of independent events occuring is the product of their occurence probabilities.
-    Writing the set of $x$s as $X$ and the corresponding set of $y$s as $Y$, and because $y$ are either 0 or 1,
-
-    $$
-    \mathcal{L}(b, a_1, \ldots, a_m \mid X, Y) =
-    \prod_{i} {(\widehat{y}_i)^{y_i} \; (1-\widehat{y}_i) ^{1-y_i}}
-    $$
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    We'll use the log-likelihood because otherwise we will have to deal with a product of really small numbers; so we take the sum of the log of the likelihood $\mathbf{L}$ of the the $(x, y)$ pairs (sum because the log of products is the sum of logs). The use of log here is not "magic", it's a mathematical convenience. It just happens that "log-likelihood" sounds very impressive.
-
-    $$
-    \log{\mathcal{L}(b, a_1, \ldots, a_m \mid X, Y)} =
-    \sum_{i} {y_i \log{\widehat{y}_i} + (1-y_i) \log{(1-\widehat{y}_i)}}
-    $$
-
-    This is very similar to the negative of an information theory function called [*cross entropy*](https://en.wikipedia.org/wiki/Cross_entropy), and we usually average it over all the samples so that we can compare cross entropies between datasets of different size:
-
-    $$
-    \mathbf{J}(b. a_1, \ldots, a_m, X, Y) = -\frac{1}{n} \log{\mathcal{L}(b, a_1, \ldots, a_m \mid X, Y)}
-    $$
-
-    where $n$ is the number of samples in $X,Y$.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Numerical stability
-
-    Due to numerical issues when using very small or very large numbers, we should play around with the definition a little bit to find an expression that we can calculate with good numerical stability.
-
-    Note that
-    $$
-    \log{\widehat{y}} = -\log{\Big(1 + e^{-z}\Big)}  = -\log{\Big(1 + e^{-z}\Big)} \\
-    \log{(1-\widehat{y})} = -z - \log{\Big(1 + e^{-z}\Big)}
-    $$
-    and therefore
-    $$
-    y \log{\widehat{y}} + (1-y) \log{(1-\widehat{y})} = \\
-    -y \log{\Big(1 + e^{-z}\Big)} + (1-y)\Big(-z - \log{\Big(1 + e^{-z}\Big)}\Big) = \\
-    (1-y)z - \log{\Big(1 + e^{-z}\Big)}
-    $$
-
-    Finally,
-    $$
-    \log{\mathcal{L}(b, a_1, \ldots, a_m \mid X, Y)} =
-    \sum_{(x,y) \in (X,Y)} {-z (1-y) - \log{\Big(1 + e^{-z}\Big)}},
-    $$
-    where $z=\text{log-odds} = a_1 x_1 + \ldots + a_n x_n$.
-    """)
-    return
-
-
-@app.cell
-def _(logodds, np, numba):
-    @numba.njit
-    def cross_entropy(X, Y, W, b):
-        Z = logodds(X, W, b)
-        logliks = -Z * (1 - Y) - np.log(1 + np.exp(-Z))
-        return -logliks.mean()
-
-    return (cross_entropy,)
-
-
-@app.cell
-def _(W, X, Y, b, cross_entropy):
-    cross_entropy(X, Y, W, b)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    # Gradient descent and the chain rule
-
-    Now we can minimize the cross entropy using gradient descent.
-    We need to calculate the derivative of the cross entropy with regards to $a_i$.
-    We will use the [chain rule](https://en.wikipedia.org/wiki/Chain_rule):
-
-    $$
-    f(g(x))' = f'(g(x)) \cdot g'(x),
-    $$
-
-    which is easier to write as
-
+    We will use the **[chain rule](https://en.wikipedia.org/wiki/Chain_rule)**:
     $$
     \frac{dx}{dy} = \frac{dx}{dz} \cdot \frac{dz}{dy}
     $$
 
-    because then we can eliminate fractions as if these were fractions and not [infinitesimals](https://en.wikipedia.org/wiki/Infinitesimal).
-    """)
-    return
+    Remember that $z = w_1 x_1 + \ldots + w_m x_m + b$ and the NLL is a function that we want to minimize.
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Remember that $z=\text{log-odds} = a_0 + a_1 x_1 + \ldots + a_m x_m$ and $\mathbf{J}$ is the cross entropy function which we want to minimize.
-
-    Then
+    Then for a single data example $(x, y)$,
     $$
-    \frac{\partial \mathbf{J}}{\partial a_k} =
-    \frac{\partial \mathbf{J}}{\partial \widehat y} \cdot \frac{\partial \widehat y}{\partial z} \cdot \frac{\partial z}{\partial a_k}
+    \frac{\partial NLL}{\partial w_j} =
+    \frac{\partial NLL}{\partial \widehat y} \cdot \frac{\partial \widehat y}{\partial z} \cdot \frac{\partial z}{\partial w_j}
     $$
 
+    So we have three terms.
     The easiest one is:
-
     $$
-    \frac{\partial z}{\partial a_k} = x_k
+    \frac{\partial z}{\partial w_j} = x_j
     $$
 
-    The derivative of the logistic function is (you can verify later):
-
+    The derivative of the logistic (expit) function is (you can verify this):
     $$
     \frac{\partial \widehat y}{\partial z} = \widehat y ( 1-\widehat y )
     $$
-    """)
-    return
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Next, because $\frac{d}{dx} log(x) = \frac{1}{x}$ (again, you can verify this),
-
+    Next, because $\frac{\partial \log}{\partial x} = \frac{1}{x}$,
     $$
-    \frac{\partial \mathbf{J}}{\partial \widehat y} =
-    - \frac{\partial}{\partial \widehat y} \big(y \log{\widehat{y}} + (1-y) \log{(1-\widehat{y})}\big) = \\
-    -y \cdot \frac{1}{\widehat y} + (1-y) \cdot \frac{1}{1-\widehat y} = \\
+    \frac{\partial NLL}{\partial \widehat y} =
+    - \frac{\partial}{\partial \widehat y} \big(y \log{\widehat{y}} + (1-y) \log{(1-\widehat{y})}\big) = $$
+    $$
+    -y \cdot \frac{1}{\widehat y} + (1-y) \cdot \frac{1}{1-\widehat y} = $$
+    $$
     \frac{\widehat y - y}{\widehat y ( 1 - \widehat y)}
     $$
 
     Putting it all together,
     $$
-    \frac{\partial \mathbf{J}}{\partial a_k} =
-    \frac{\partial \mathbf{J}}{\partial \widehat y} \cdot \frac{\partial \widehat y}{\partial z} \cdot \frac{\partial z}{\partial a_k} = \\
-    \frac{\widehat y - y}{\widehat y ( 1 - \widehat y)} \cdot \widehat y ( 1-\widehat y ) \cdot x_k = \\
-    (\widehat y - y) \cdot x_k
+    \frac{\partial NLL}{\partial w_j} =
+    \frac{\partial NLL}{\partial \widehat y} \cdot \frac{\partial \widehat y}{\partial z} \cdot \frac{\partial z}{\partial w_j} = $$
+    $$
+    \frac{\widehat y - y}{\widehat y ( 1 - \widehat y)} \cdot \widehat y ( 1-\widehat y ) \cdot x_j = $$
+    $$
+    (\widehat y - y) \cdot x_j
     $$
 
-    which you have to admit is pretty cool: this is the residual (i.e. difference between the predicted and oberverd probabilities, $\widehat y - y$), so 0 when you got it right and 1 or -1 when you got it completely wrong, multiplied by the stength of the signal, so that strong signals (large $x_k$) have a stonger gradient and stonger effect on the result.
+    This is pretty cool: it is the residual (i.e., difference between the predicted and oberverd probabilities, $\widehat y - y$), so 0 when the model got it right and 1 or -1 when it got it completely wrong, multiplied by the stength of the signal, so that strong signals (large $x_j$) have a stonger gradient and stonger effect on the result.
+
+    Since $\frac{\partial z}{\partial b} = 1$, the gradient with respect to the bias follows the same chain rule but with a simpler last term:
+    $$
+    \frac{\partial NLL}{\partial b} = (\widehat y - y)
+    $$
 
     This was the gradient for a single sample. We average it over all samples to get a good estimate of the "real gradient" (law of large numbers etc.).
     """)
@@ -473,72 +356,90 @@ def _(mo):
 
 
 @app.cell
-def _(logodds, np, numba):
-    @numba.njit
-    def gradient(X, Y, W, b):
-        Z = logodds(X, W, b)
-        _Yhat = 1 / (1 + np.exp(-Z))
-        δ = _Yhat - Y
-        dW = X.T @ δ / δ.shape[0]
-        db = δ.mean()
-        assert dW.shape == W.shape
-        return (dW, db)
+def _(expit):
+    def gradient(W, b, X, Y):
+        Z = X @ W + b
+        Yhat = expit(Z)
+        δ = Yhat - Y
+        G_W = X.T @ δ / X.shape[0] # equivalent to G_W = (X * δ).mean(axis=0)
+        G_b = δ.mean()
+        assert G_W.shape == W.shape
+        return G_W, G_b
 
-    @numba.njit
-    def gradient_descent(X, Y, W, b, η=0.01):
-        dW, db = gradient(X, Y, W, b)
-        return (W - η * dW, b - η * db)
+    return (gradient,)
 
-    return gradient, gradient_descent
+
+@app.cell
+def _(W, X, Y, b, gradient):
+    G_W, G_b = gradient(W, b, X, Y)
+    print(G_W, G_b)
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    When your solution is ready, comment out the first line of the next cell and run it.
+    # Gradient descent
+
+    The NLL function is convex (ProbML ch. 10.2.3.4), so all we need to do is follow the negative gradeints that we just calculated towards the global minimum; this is called **gradient descent**.
+
+    This is a simple, effective, and generic iterative algorithm.
+    In each step, we calculate that gradient of the NLL function with respect to model parameters $\partial NLL/\partial W$ and $\partial NLL/\partial b$ and update the parameters according to the recursive equations for the parameter values at iteration $t$,
+    $$
+    W_t = W_{t-1} - \eta \frac{\partial NLL(W, b)}{\partial W}
+    $$
+    $$
+    b_t = b_{t-1} - \eta \frac{\partial NLL(W, b)}{\partial b}
+    $$
+    Here, $\eta$ is the size of the step we take in the negative gradient in each iteration, also called **learning rate**.
     """)
     return
+
+
+@app.cell
+def _(gradient):
+    def gradient_descent(W, b, X, Y, η):
+        G_W, G_b = gradient(W, b, X, Y)
+        return W - η * G_W, b - η * G_b
+
+    return (gradient_descent,)
 
 
 @app.cell
 def _(W, X, Y, b, gradient_descent):
-    W_1, b_1 = gradient_descent(X, Y, W, b)
-    print(W_1)
-    print(b_1)
+    import timeit
+    _t = timeit.timeit(lambda: gradient_descent(W, b, X, Y, 0.0001), number=1000)
+    print(f"{_t/1000*1e3:.3f} ms per call")
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Fitting the logistic model
-    """)
-    return
+    # Fitting the model
 
+    We are now ready to fit the model.
+    We initialize $W$ with all ones, since we know the problem is convex.
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    Fitting the model is done in much the same way as we did with the linear model - just have to choose initial coefficeints, different stopping condition, and adjust to the API of the new `gradient_descent` function.
-
-    This time we stop when the difference in cross entropy between two iterations is smaller than some value ($10^{-4}$).
+    The `fit_logistic` function will do all the hard work.
     """)
     return
 
 
 @app.cell
-def _(cross_entropy, gradient_descent, np, numba):
-    @numba.njit 
-    def logistic_model(X, Y, W=None, b=1, iters=100000, verbose=True):
-        if W is None:
-            W = np.zeros(X.shape[1])    
-        for t in range(iters+1):
-            W, b = gradient_descent(X, Y, W, b)
-            if verbose and t % (iters//10) == 0:
-                J = cross_entropy(X, Y, W, b)
-                print(t, "- J =", round(J, 6), "W =", np.round(W, 4), "b =", round(b, 4))
+def _(NLL, X, Y, gradient_descent, np):
+    def fit_logistic(X, Y, η=0.001, niter=100000, verbose=True):
+        W = np.ones(X.shape[1])
+        b = 0.0
+        for t in range(niter+1):
+            if t % 5000 == 0 and verbose:
+                print("{:6d}: NLL={:.6f}, W={}, b={:.4f}".format(t, NLL(W, b, X, Y), np.array_str(W, precision=4), b))
+            W, b = gradient_descent(W, b, X, Y, η)
         return W, b
 
+    logistic_model = fit_logistic
+    _W, _b = fit_logistic(X, Y)
+    print(_W, _b)
     return (logistic_model,)
 
 
@@ -566,10 +467,8 @@ def _(mo):
 
 
 @app.cell
-def _(W_2, X, Y, cross_entropy, gradient, np, scipy):
-    # magic command not supported in marimo; please file an issue to add support
-    # %%time
-    min_result = scipy.optimize.minimize(fun=lambda θ: cross_entropy(X, Y, θ[:W_2.size], θ[-1]), x0=np.ones(X.shape[1] + 1), jac=lambda θ: np.append(*gradient(X, Y, θ[:W_2.size], θ[-1])), method='TNC')
+def _(NLL, W_2, X, Y, gradient, np, scipy):
+    min_result = scipy.optimize.minimize(fun=lambda θ: NLL(θ[:W_2.size], θ[-1], X, Y), x0=np.ones(X.shape[1] + 1), jac=lambda θ: np.append(*gradient(θ[:W_2.size], θ[-1], X, Y)), method='TNC')
     assert min_result.success, min_result.message
     print(min_result.x, min_result.fun)  # BFGS 28.7 ms ± 4.71 ms, L-BFGS-B 24.1 ms ± 4.59 ms, TNC 16.1 ms ± 3.71 ms, SLSQP 21.4 ms ± 4.96 ms
     return
@@ -644,9 +543,17 @@ def _(mo):
 
 
 @app.cell
+def _():
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import precision_recall_curve
+
+    return LogisticRegression, precision_recall_curve
+
+
+@app.cell
 def _(LogisticRegression, X, Y):
     model = LogisticRegression(penalty=None, fit_intercept=True) # by default, scikit-learn uses l2 penalty
-    model.fit(X, Y)
+    model.fit(X, Y);
     return (model,)
 
 
@@ -716,25 +623,28 @@ def _(mo):
 
     You might consider that it is preferable to sometimes tell someone they are not going to survive and should remain under care, when they are actually going to survive without care, rather than sometimes telling people they are healthy enough to leave the hospital when they are actually not going to make it and they should remain under supervision.
 
-    Let's suppose that a positive answer is "person survived" that is $y=1$ or `truth==1` and use *scikit-learn*'s utility to calculate and plot the [Receiver operating characteristic](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curve.
+    Let's suppose that a positive answer is "person survived" that is $y=1$ or `truth==1` and use *scikit-learn*'s utility to calculate and plot the [Precision-Recall curve](https://en.wikipedia.org/wiki/Precision_and_recall).
 
-    An "ideal" model will shoot directly to the top, that is, have maximum TPR for any FPR.
-    A "random" or "naive" model can be expected to follow the dashed line.
+    **Precision** is the fraction of predicted survivors that truly survived; **recall** is the fraction of actual survivors that were correctly predicted.
+    An "ideal" model reaches the top-right corner (precision=1, recall=1).
+    A "random" classifier follows a horizontal line at the class prevalence.
 
-    Indeed if we look at the ROC curve, the threshold we choose is right on the "knee" of the curve.
+    The marked point corresponds to the 0.06 death-probability threshold we chose above.
     """)
     return
 
 
 @app.cell
-def _(X, Y, model, plt, roc_curve):
+def _(X, Y, model, plt, precision_recall_curve):
     _Yhat = model.predict_proba(X)[:, 1]
-    fpr, tpr, thresholds = roc_curve(Y, _Yhat)
-    plt.plot(fpr, tpr)
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
+    precision, recall, thresholds = precision_recall_curve(Y, _Yhat)
+    plt.plot(recall, precision)
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
     idx = (thresholds < 1 - 0.06).argmax()
-    plt.plot(fpr[idx], tpr[idx], 'ok')
+    plt.plot(recall[idx], precision[idx], 'ok')
+    plt.ylim(0.9,1)
+    plt.xlim(0.9,1)
     plt.gcf()
     return
 
@@ -783,6 +693,8 @@ def _(mo):
 
 @app.cell
 def _():
+    import pytensor
+    pytensor.config.linker = 'py' # to avoid error in vs code
     import pymc as pm
     import arviz as az
     import bambi as bmb
