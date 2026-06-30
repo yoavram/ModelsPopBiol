@@ -482,8 +482,6 @@ def _(mo):
 
 @app.cell
 def _(scipy, t, y):
-    # magic command not supported in marimo; please file an issue to add support
-    # %%time
     regress = scipy.stats.linregress(t, y)
     print(regress.slope, regress.intercept)
     return (regress,)
