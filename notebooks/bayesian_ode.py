@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
@@ -175,7 +175,7 @@ def _(blue, plot_setup, plt, predator_prey_model, red, trange, θ_mle):
     plt.plot(trange, xhat, color=red)
     plt.plot(trange, yhat, color=blue)
     plot_setup();
-    return xhat, yhat
+    return
 
 
 @app.cell(hide_code=True)
@@ -189,7 +189,7 @@ def _(mo):
 
 
 @app.cell
-def _(loss, np, scipy, t, xy, θ_guess):
+def _(loss, np, scipy, t, xy):
     θ_guesses = np.random.uniform(0, 40, size=(10, 6))
     assert (θ_guesses > 0).all()
     for θ_ in θ_guesses:
@@ -221,6 +221,8 @@ def _(mo):
 
 @app.cell
 def _():
+    import pytensor
+    pytensor.config.linker = 'py' # to avoid error in vs code
     import pymc as pm
     import arviz as az
     import pytensor.tensor as pt
