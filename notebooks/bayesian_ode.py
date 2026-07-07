@@ -71,7 +71,8 @@ def _(blue, hare, lynx, plt, red, t):
         plt.legend(['Hare', 'Lynx'])
         plt.ylim(0, None)
         plt.xticks([1900, 1905, 1910, 1915, 1920])
-
+        plt.show()
+    
     plot_setup()
     return (plot_setup,)
 
@@ -147,16 +148,6 @@ def _(mo):
 
 
 @app.cell
-def _(predator_prey_model, t, xy, θ_mle):
-    print(xy)
-    print('-'*80)
-    xyhat = predator_prey_model(θ_mle, t)
-    print(xyhat)
-    print('-'*80)
-    return
-
-
-@app.cell
 def _(np, predator_prey_model, scipy, t, xy, θ_guess):
     def loss(θ, t, xy):
         xyhat = predator_prey_model(θ, t)
@@ -167,6 +158,16 @@ def _(np, predator_prey_model, scipy, t, xy, θ_guess):
     print(_sol.message)
     print('loss={:.4f}\nb = {:.4f}\nh = {:.4f}\nϵ = {:.4f}\nd = {:.4f}\nx0 = {:.2f}\ny0 = {:.4f}'.format(_sol.fun, *θ_mle))
     return loss, θ_mle
+
+
+@app.cell
+def _(predator_prey_model, t, xy, θ_mle):
+    print(xy)
+    print('-'*80)
+    xyhat = predator_prey_model(θ_mle, t)
+    print(xyhat)
+    print('-'*80)
+    return
 
 
 @app.cell
@@ -225,6 +226,7 @@ def _():
     pytensor.config.linker = 'py' # to avoid error in vs code
     import pymc as pm
     import arviz as az
+
     import pytensor.tensor as pt
     from pytensor.compile.ops import as_op
 
@@ -317,6 +319,7 @@ def _(mo):
 def _(az, idata_1, plt):
     az.plot_trace(idata_1)
     plt.tight_layout()
+    plt.show()
     return
 
 
@@ -355,6 +358,7 @@ def _(
     idata_1,
     isummary,
     lynx,
+    np,
     plot_setup,
     plt,
     predator_prey_model,
@@ -374,6 +378,8 @@ def _(
     # plot posterior predictions 
         θi = row[['b', 'h', 'ϵ', 'd', 'x0', 'y0']].values
         x, y = predator_prey_model(θi, t)
+        x = np.random.poisson(x)  # add Poisson noise to the predictions
+        y = np.random.poisson(y)  # add Poisson noise to the predictions
         plt.plot(t, x, color=red, alpha=0.05)
         plt.plot(t, y, color=blue, alpha=0.05)
     plot_setup()
@@ -506,7 +512,6 @@ def _(grad, loss_1, optax, t_1, xy_1, θ_guess_1):
 
 @app.cell
 def _(grad_loss, loss_1, opt_state, optax, optimizer, t_1, xy_1, θ_guess_1):
-    # %%time
     θ_hat = θ_guess_1.copy()
     for i in range(1500):
         grads = grad_loss(θ_hat, t_1, xy_1)
