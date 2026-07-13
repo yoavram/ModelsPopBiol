@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
@@ -33,7 +33,6 @@ def _():
         plt,
         red,
         scipy,
-        sns,
     )
 
 
@@ -85,7 +84,7 @@ def _(mo):
 
     **But what happens if we cannot write or even compute the likelihood function $P(X \mid \theta)$?**
 
-    The family of methods that try to resolve this problem are called **likelihood free inference** methods, and the most common one is approximate Bayesian computation, or ABC.
+    The family of methods that try to resolve this problem are called **likelihood-free inference** methods, and the most common one is approximate Bayesian computation, or ABC.
     """)
     return
 
@@ -113,7 +112,7 @@ def _(mo):
 
     We can then compare the simulated $X'$ and the observed $X$ to conclude if $\theta$ is likely -- thereby approximating the likelihood of $\theta$ without directly computing it.
 
-    ![ABC](https://www.pnas.org/cms/10.1073/pnas.1912789117/asset/909fb0b7-567b-40fb-9b24-33893a76bd05/assets/images/large/pnas.1912789117fig01.jpg)
+    [![ABC](https://www.pnas.org/cms/10.1073/pnas.1912789117/asset/909fb0b7-567b-40fb-9b24-33893a76bd05/assets/images/large/pnas.1912789117fig01.jpg)](https://www.pnas.org/cms/10.1073/pnas.1912789117/asset/909fb0b7-567b-40fb-9b24-33893a76bd05/assets/images/large/pnas.1912789117fig01.jpg)
 
     Figure from [Cranmer et al, 2020](http://doi.org/10.1073/pnas.1912789117).
     """)
@@ -155,17 +154,17 @@ def _(mo):
 @app.cell
 def _(np):
     # for reproducibility
-    rng = np.random.default_rng(4222)
+    rng = np.random.default_rng(87)
     n = 150
     θ = (r, ϕ) = 5, 2
 
     μi = rng.gamma(r, scale=ϕ, size=n)
     X = rng.poisson(μi)
-    return X, n, r, φ
+    return X, n, r, rng, φ
 
 
 @app.cell
-def _(X, n, np, plt, r, red, sns, φ):
+def _(X, n, np, plt, r, red, φ):
     _fig, _axes = plt.subplots(1, 2, figsize=(8, 4))
     _ax = _axes[0]
     _ax.plot(np.arange(n), X, '.k')
@@ -178,7 +177,7 @@ def _(X, n, np, plt, r, red, sns, φ):
     _ax.set_ylabel('Density')
     _ax.set_xlabel('Count, $X_i$')
     _fig.tight_layout()
-    sns.despine()
+    plt.show()
     return
 
 
@@ -229,7 +228,7 @@ def _(scipy):
 
 
 @app.cell
-def _(blue, color_truth, orange, plt, r, rs, sns, φ, φs):
+def _(blue, color_truth, orange, plt, r, rs, φ, φs):
     _fig, _axes = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
     _axes[0].hist(rs, bins=50, color=blue, density=True)
     _axes[0].axvline(r, color=color_truth)
@@ -238,7 +237,7 @@ def _(blue, color_truth, orange, plt, r, rs, sns, φ, φs):
     _axes[0].set(xlabel='$r$', ylabel='Density')
     _axes[1].set(xlabel='$\\phi$')
     _fig.tight_layout()
-    sns.despine()
+    plt.show()
     return
 
 
@@ -307,7 +306,7 @@ def _(mo):
 
 
 @app.cell
-def _(S, S_sim, color_estimate, color_truth, plt, sns):
+def _(S, S_sim, color_estimate, color_truth, plt):
     S1, S2 = S  # S is shape (2,1)
     S1_sim, S2_sim = S_sim  # S_sim is shape (2,N)
     _fig, _axes = plt.subplots(1, 2, figsize=(10, 4))
@@ -323,7 +322,7 @@ def _(S, S_sim, color_estimate, color_truth, plt, sns):
     _ax.axvline(S2_sim.mean(), color=color_estimate)
     _ax.set_xlabel('$S_2$')
     _fig.tight_layout()
-    sns.despine()
+    plt.show()
     return
 
 
@@ -340,7 +339,7 @@ def _(mo):
 
 
 @app.cell
-def _(blue, color_truth, np, orange, plt, r, rs, sns, ρs, φ, φs):
+def _(blue, color_truth, np, orange, plt, r, rs, ρs, φ, φs):
     quantile = 0.01
     ε = np.quantile(ρs, quantile)
     _fig, _axes = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
@@ -356,7 +355,7 @@ def _(blue, color_truth, np, orange, plt, r, rs, sns, ρs, φ, φs):
     _ax.axvline(φ, color=color_truth)
     _ax.set(xlabel='ϕ')
     _fig.tight_layout()
-    sns.despine()
+    plt.show()
     return (ε,)
 
 
@@ -407,7 +406,7 @@ def _(mo):
 
 
 @app.cell
-def _(blue, green, orange, plt, r, red, rs_accepted, sns, φ, φs_accepted):
+def _(blue, green, orange, plt, r, red, rs_accepted, φ, φs_accepted):
     _fig, _axes = plt.subplots(2, 2, figsize=(6, 6))
     hist_kws = dict(bins=20, density=True, alpha=0.65)
     _ax = _axes[0, 0]
@@ -434,7 +433,7 @@ def _(blue, green, orange, plt, r, red, rs_accepted, sns, φ, φs_accepted):
     _ax.axhline(φ, color=red, alpha=0.5)
     _ax.axhline(φs_accepted.mean(), color=green, alpha=0.5)
     _fig.tight_layout()
-    sns.despine()
+    plt.show()
     return
 
 
@@ -469,7 +468,7 @@ def _(mo):
     In the simulation step, it is possible to simulate multiple simulations and summarize all of them. This will leverage NumPy array operations for increased efficiency and precision.
 
     A nice example of using MCMC for ABC is presented in
-    > 1. Tanaka MM, Francis AR, Luciani F, Sisson SA. [Using approximate bayesian computation to estimate tuberculosis transmission parameters from genotype data](http://doi.org/10.1534/genetics.106.055574). Genetics. 2006;173(3):1511-1520. doi:10.1534/genetics.106.055574
+    > Tanaka MM, Francis AR, Luciani F, Sisson SA. [Using approximate bayesian computation to estimate tuberculosis transmission parameters from genotype data](http://doi.org/10.1534/genetics.106.055574). Genetics. 2006;173(3):1511-1520. doi:10.1534/genetics.106.055574
     """)
     return
 
@@ -504,6 +503,8 @@ def _(mo):
 
 @app.cell
 def _():
+    import pytensor
+    pytensor.config.linker = 'py' # to avoid error in vs code
     import pymc as pm
     import arviz as az
 
@@ -536,39 +537,29 @@ def _(X, pm, simulator_1, summary_1):
     #     X_obs = pm.Poisson('X_obs', mu=μ_, observed=X)
     #     idata_gamma_poisson = pm.sample(draws=10000)
     # ABC PyMC; 'laplace' is equivalent to absolute difference
-        idata_gamma_poisson = pm.sample_smc(progressbar=False)  # progressbar gave me errors :(
+        idata_gamma_poisson = pm.sample_smc(progressbar=True) 
     return (idata_gamma_poisson,)
 
 
 @app.cell
-def _(idata_gamma_poisson):
-    idata_gamma_poisson.to_netcdf("idata_abc_poisson.nc")
-    return
-
-
-@app.cell
-def _(az):
-    idata_gamma_poisson_1 = az.from_netcdf('idata_abc_poisson.nc')
-    return (idata_gamma_poisson_1,)
-
-
-@app.cell
-def _(az, idata_gamma_poisson_1, plt):
-    az.plot_trace(idata_gamma_poisson_1)  # combined=True)
+def _(az, idata_gamma_poisson, plt):
+    az.plot_trace(idata_gamma_poisson)
     plt.tight_layout()
+    plt.show()
     return
 
 
 @app.cell
-def _(az, idata_gamma_poisson_1, r, φ):
+def _(az, idata_gamma_poisson, r, φ):
     print('r={}, ϕ={}'.format(r, φ))
-    az.summary(idata_gamma_poisson_1, round_to=2)
+    az.summary(idata_gamma_poisson, round_to=2)
     return
 
 
 @app.cell
-def _(az, idata_gamma_poisson_1, r, red, φ):
-    az.plot_pair(idata_gamma_poisson_1, kind='kde', marginals=True, point_estimate='median', reference_values={'r': r, 'ϕ': φ}, reference_values_kwargs=dict(color=red))
+def _(az, idata_gamma_poisson, plt, r, red, φ):
+    az.plot_pair(idata_gamma_poisson, kind='kde', marginals=True, point_estimate='median', reference_values={'r': r, 'ϕ': φ}, reference_values_kwargs=dict(color=red))
+    plt.show()
     return
 
 
@@ -592,17 +583,18 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _():
     import networkx as nx
-    rng_1 = np.random.default_rng()
-    return nx, rng_1
+
+    return (nx,)
 
 
 @app.cell
-def _(nx):
+def _(nx, plt):
     def show_net(network):
-        G = nx.from_numpy_array(_network)
+        G = nx.from_numpy_array(network)
         nx.draw_spring(G, node_color='#4466ee', alpha=0.8)
+        plt.show()
 
     return (show_net,)
 
@@ -635,15 +627,15 @@ def _(mo):
 
 @app.cell
 def _(dolphin_data, np):
-    N_1 = dolphin_data.max()  # dolphin ids go from 1 to 62
-    dolphin_network = np.zeros((N_1, N_1), dtype=int)
+    N_dolphin = dolphin_data.max()  # dolphin ids go from 1 to 62
+    dolphin_network = np.zeros((N_dolphin, N_dolphin), dtype=int)
     for row in dolphin_data:
         src, dst = row
         src = src - 1  # to zero count
         dst = dst - 1
         dolphin_network[dst, src] = 1
         dolphin_network[src, dst] = 1  # set connection
-    return N_1, dolphin_network
+    return N_dolphin, dolphin_network
 
 
 @app.cell
@@ -673,14 +665,13 @@ def _(mo):
 
 
 @app.cell
-def _(N_1, nx):
-    def simulator_2(rng, pn, pr, size=(N_1, N_1)):
-        assert size[0] == size[1], size
-        tmax = 20 * N_1
-        deaths = rng.integers(0, N_1, size=tmax)
-        parents = rng.integers(0, N_1, size=tmax)
-        randoms = rng.random(size=(tmax, N_1))
-        G = nx.erdos_renyi_graph(size[0], p=0.1 / 2)
+def _(N_dolphin, nx):
+    def simulator_network(rng, pn, pr, size=None, N=N_dolphin):
+        tmax = 20 * N
+        deaths = rng.integers(0, N, size=tmax)
+        parents = rng.integers(0, N, size=tmax)
+        randoms = rng.random(size=(tmax, N))
+        G = nx.erdos_renyi_graph(N, p=0.1 / 2)
         _network = nx.to_numpy_array(G, dtype=bool)
         for t in range(tmax):
             d = deaths[t]
@@ -694,14 +685,14 @@ def _(N_1, nx):
             _network[d, :] = from_mom | from_random
             _network[d, b] = True
             _network[:, d] = _network[d, :]
-        return _network
+        return _network.astype(int)
 
-    return (simulator_2,)
+    return (simulator_network,)
 
 
 @app.cell
-def _(rng_1, show_net, simulator_2):
-    _network = simulator_2(rng_1, 0.5, 0.01)
+def _(rng, show_net, simulator_network):
+    _network = simulator_network(rng, 0.5, 0.01)
     show_net(_network)
     return
 
@@ -721,18 +712,18 @@ def _(mo):
 @app.cell
 def _(np, nx):
     def mean_degree(network):
-        degrees = _network.sum(axis=0)
+        degrees = network.sum(axis=0)
         return degrees.mean()
 
     def clustering_coefficient(network):
-        G = nx.from_numpy_array(_network)
+        G = nx.from_numpy_array(network)
         clustering = nx.algorithms.clustering(G)
         return np.fromiter(clustering.values(), dtype=float).mean()
 
-    def summary_2(network):
-        return np.array([mean_degree(_network), clustering_coefficient(_network)])
+    def summary_network(network):
+        return np.array([mean_degree(network), clustering_coefficient(network)])
 
-    return clustering_coefficient, mean_degree, summary_2
+    return clustering_coefficient, mean_degree, summary_network
 
 
 @app.cell(hide_code=True)
@@ -761,8 +752,8 @@ def _(mo):
 
 
 @app.cell
-def _(clustering_coefficient, mean_degree, rng_1, simulator_2):
-    _network = simulator_2(rng_1, 0.5, 0.01)
+def _(clustering_coefficient, mean_degree, rng, simulator_network):
+    _network = simulator_network(rng, 0.5, 0.01)
     print('Mean degree {:.2f} \nClustering coefficient {:.2f}'.format(mean_degree(_network), clustering_coefficient(_network)))
     return
 
@@ -780,59 +771,49 @@ def _(mo):
 
 
 @app.cell
-def _(dolphin_network, pm, simulator_2, summary_2):
+def _(dolphin_network, pm, simulator_network, summary_network):
     network_model = pm.Model()
     with network_model:
-        pn = pm.Uniform('pn', lower=0, upper=1)
-        pr = pm.Uniform('pr', lower=0, upper=1)
-        _network = pm.Simulator('network', simulator_2, params=(pn, pr), distance='laplace', sum_stat=summary_2, observed=dolphin_network)
-        idata_network = pm.sample_smc(kernel='ABC', draws=5000, progressbar=False)
+        _pn = pm.Uniform('pn', lower=0, upper=1)
+        _pr = pm.Uniform('pr', lower=0, upper=1)
+        _network = pm.Simulator('network', simulator_network, params=(_pn, _pr), distance='laplace', sum_stat=summary_network, observed=dolphin_network)
+        idata_network = pm.sample_smc(draws=5000, progressbar=True)
     return (idata_network,)
 
 
 @app.cell
-def _(idata_network):
-    idata_network.to_netcdf("idata_dolphins_network.nc")
-    return
-
-
-@app.cell
-def _(az):
-    idata_network_1 = az.from_netcdf('idata_dolphins_network.nc')
-    return (idata_network_1,)
-
-
-@app.cell
-def _(az, idata_network_1, plt):
-    az.plot_trace(idata_network_1)
+def _(az, idata_network, plt):
+    az.plot_trace(idata_network)
     plt.tight_layout()
+    plt.show()
     return
 
 
 @app.cell
-def _(az, idata_network_1):
-    az.summary(idata_network_1, round_to=2)
+def _(az, idata_network):
+    az.summary(idata_network, round_to=2)
     return
 
 
 @app.cell
-def _(az, idata_network_1):
-    az.plot_pair(idata_network_1, kind='kde', marginals=True, point_estimate='median')
+def _(az, idata_network):
+    az.plot_pair(idata_network, kind='kde', marginals=True, point_estimate='median')
     return
 
 
 @app.cell
-def _(idata_network_1, plt):
-    plt.plot(idata_network_1.sample_stats.accept_rate.T, '.-')
+def _(idata_network, plt):
+    plt.plot(idata_network.sample_stats.accept_rate.T, '.-')
     plt.title('Acceptance rate')
     return
 
 
 @app.cell
-def _(idata_network_1, plt):
-    plt.plot(idata_network_1.sample_stats.beta.T, '.-')
+def _(idata_network, plt):
+    plt.plot(idata_network.sample_stats.beta.T, '.-')
     plt.title('SMC $\\beta$')
     plt.ylim(0, 1)
+    plt.show()
     return
 
 
@@ -849,11 +830,11 @@ def _(mo):
 
 
 @app.cell
-def _(idata_network_1, np, rng_1, simulator_2, summary_2):
-    posterior = idata_network_1.posterior.stack(samples=('draw', 'chain'))
+def _(idata_network, np, rng, simulator_network, summary_network):
+    posterior = idata_network.posterior.stack(samples=('draw', 'chain'))
     post_pn = np.array(posterior['pn'])
     post_pr = np.array(posterior['pr'])
-    post_sum_stats = np.array([summary_2(simulator_2(rng_1, post_pn[i], post_pr[i])) for i in range(100)])
+    post_sum_stats = np.array([summary_network(simulator_network(rng, post_pn[i], post_pr[i])) for i in range(100)])
     return (post_sum_stats,)
 
 
@@ -864,19 +845,19 @@ def _(
     mean_degree,
     np,
     post_sum_stats,
-    rng_1,
-    simulator_2,
-    summary_2,
+    rng,
+    simulator_network,
+    summary_network,
 ):
     pymc_summary = post_sum_stats.mean(axis=0)
     print('PyMC: {:.3f}, {:.3f}'.format(*pymc_summary))
-    networks = np.array([simulator_2(rng_1, 0.5, 0.028) for _ in range(100)])
+    networks = np.array([simulator_network(rng, 0.5, 0.028) for _ in range(100)])
     pls_summary = (np.mean([mean_degree(net) for net in networks]), np.mean([clustering_coefficient(net) for net in networks]))
     print('PLS: {:.3f}, {:.3f}'.format(*pls_summary))
-    networks = np.array([simulator_2(rng_1, 0.43, 0.036) for _ in range(100)])
+    networks = np.array([simulator_network(rng, 0.43, 0.036) for _ in range(100)])
     analytic_summary = (np.mean([mean_degree(net) for net in networks]), np.mean([clustering_coefficient(net) for net in networks]))
     print('Analytic: {:.3f}, {:.3f}'.format(*analytic_summary))
-    observed_summary = summary_2(dolphin_network)
+    observed_summary = summary_network(dolphin_network)
     print('Observed: {:.3f}, {:.3f}'.format(*observed_summary))
     return analytic_summary, observed_summary, pls_summary, pymc_summary
 
@@ -892,7 +873,6 @@ def _(
     plt,
     post_sum_stats,
     pymc_summary,
-    sns,
 ):
     _fig, _axes = plt.subplots(1, 2, figsize=(10, 5))
     _axes[0].hist(post_sum_stats[:, 0], 20, density=True, alpha=0.8)
@@ -909,7 +889,7 @@ def _(
     _axes[1].axvline(pymc_summary[1], lw=2, color=color_estimate)
     _axes[1].set(xlabel='clustering_coefficient')
     _fig.tight_layout()
-    sns.despine()
+    plt.show()
     return
 
 
